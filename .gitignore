@@ -1,0 +1,15 @@
+# Go
+*.exe
+tmp/
+bin/
+
+# Env
+.env
+.env.*
+
+# Node / Expo
+kpop-app/node_modules/
+kpop-app/.expo/
+
+# OS
+.DS_Store

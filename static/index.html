@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>K-Pop Studio - Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+      body {
+        background: radial-gradient(circle at top right, #1e0a1e, #000000);
+        background-attachment: fixed;
+      }
+      .kpop-card {
+        background: rgba(24, 24, 27, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 20, 147, 0.15);
+      }
+      .neon-pink {
+        color: #ff1493;
+        text-shadow: 0 0 10px rgba(255, 20, 147, 0.4);
+      }
+      .gradient-btn {
+        background: linear-gradient(90deg, #ff1493, #8a2be2);
+      }
+    </style>
+  </head>
+  <body class="text-zinc-100 font-sans min-h-screen">
+    <div
+      x-data="studioManager()"
+      x-init="init()"
+      class="p-4 max-w-2xl mx-auto flex flex-col min-h-screen"
+    >
+      <header class="flex flex-col items-center mb-8 gap-4">
+        <h1
+          class="text-2xl font-black italic neon-pink uppercase tracking-tighter"
+        >
+          K-Pop<span class="text-white">Studio</span>
+        </h1>
+        <nav
+          class="flex gap-1 bg-zinc-900/80 p-1 rounded-2xl border border-zinc-800 w-full"
+        >
+          <button
+            @click="aba = 'feed'"
+            :class="aba === 'feed' ? 'bg-zinc-800 text-pink-500' : 'text-zinc-500'"
+            class="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition flex-1"
+          >
+            Feed
+          </button>
+          <button
+            @click="aba = 'membros'"
+            :class="aba === 'membros' ? 'bg-zinc-800 text-purple-400' : 'text-zinc-500'"
+            class="px-3 py-2 rounded-xl text-[10px] font-bold uppercase transition flex-1"
+          >
+            Membros
+          </button>
+        </nav>
+      </header>
+
+      <main class="flex-grow">
+        <section x-show="aba === 'feed'" x-transition>
+          <div class="kpop-card p-6 rounded-3xl mb-6">
+            <input
+              x-model="novoPost.nome"
+              type="text"
+              placeholder="Seu apelido..."
+              class="bg-transparent border-b border-zinc-800 w-full mb-4 py-2 outline-none focus:border-pink-500 text-sm"
+            />
+            <textarea
+              x-model="novoPost.mensagem"
+              placeholder="O que achou da nova atualização?"
+              class="w-full bg-zinc-900/40 rounded-2xl p-4 text-sm h-24 outline-none border border-transparent focus:border-pink-500/30"
+            ></textarea>
+            <button
+              @click="enviarPost"
+              class="gradient-btn w-full py-3 mt-4 rounded-2xl font-black text-xs uppercase tracking-widest"
+            >
+              Publicar Feedback
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <template x-for="post in posts" :key="post.id">
+              <div
+                class="kpop-card p-5 rounded-3xl border-l-4 border-l-pink-500"
+              >
+                <div class="flex justify-between items-start mb-2">
+                  <span
+                    class="font-bold text-pink-400 text-xs"
+                    x-text="post.nome"
+                  ></span>
+                  <div
+                    class="flex gap-3"
+                    x-show="novoPost.nome === post.nome && post.nome !== ''"
+                  >
+                    <button
+                      @click="iniciarEdicao(post)"
+                      class="text-[9px] uppercase font-bold text-blue-400"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      @click="apagarPost(post.id)"
+                      class="text-[9px] uppercase font-bold text-red-500"
+                    >
+                      Apagar
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <template x-if="!post.editando">
+                    <p class="text-sm text-zinc-300" x-text="post.mensagem"></p>
+                  </template>
+                  <template x-if="post.editando">
+                    <div class="space-y-2">
+                      <textarea
+                        x-model="post.msgEdit"
+                        class="w-full bg-black/40 border border-pink-500/30 rounded-xl p-3 text-sm outline-none"
+                      ></textarea>
+                      <div class="flex gap-2">
+                        <button
+                          @click="salvarEdicao(post)"
+                          class="bg-green-600 px-3 py-1 rounded-lg text-[10px] font-bold"
+                        >
+                          SALVAR
+                        </button>
+                        <button
+                          @click="post.editando = false"
+                          class="bg-zinc-700 px-3 py-1 rounded-lg text-[10px] font-bold"
+                        >
+                          CANCELAR
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+
+                <div class="flex gap-4 border-t border-zinc-800/50 pt-3">
+                  <button
+                    @click="reagirPost(post.id)"
+                    :class="post.jaDeuLike ? 'text-pink-500' : 'text-zinc-500'"
+                    class="text-[11px] font-bold"
+                  >
+                    💖 <span x-text="post.likes"></span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      function studioManager() {
+        return {
+          aba: "feed",
+          posts: [],
+          novoPost: { nome: "", mensagem: "", tag: "Membro" },
+          listaMembros: [
+            { nome: "Ana Luiza", plano: "Diamond" },
+            { nome: "K-Army99", plano: "Gold" },
+          ],
+
+          async init() {
+            this.carregarFeed();
+          },
+
+          async carregarFeed() {
+            const res = await fetch("/api/feed");
+            const data = await res.json();
+            const likesLocal = JSON.parse(
+              localStorage.getItem("user_likes") || "[]"
+            );
+            this.posts = (data || []).map((p) => ({
+              ...p,
+              editando: false,
+              msgEdit: "",
+              jaDeuLike: likesLocal.includes(p.id),
+            }));
+          },
+
+          async enviarPost() {
+            if (!this.novoPost.mensagem) return;
+            await fetch("/api/feedback", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(this.novoPost),
+            });
+            this.novoPost.mensagem = "";
+            this.carregarFeed();
+          },
+
+          async reagirPost(id) {
+            let likesLocal = JSON.parse(
+              localStorage.getItem("user_likes") || "[]"
+            );
+            if (likesLocal.includes(id)) return;
+
+            await fetch("/api/react-post", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id }),
+            });
+
+            likesLocal.push(id);
+            localStorage.setItem("user_likes", JSON.stringify(likesLocal));
+            this.carregarFeed();
+          },
+
+          iniciarEdicao(post) {
+            post.editando = true;
+            post.msgEdit = post.mensagem;
+          },
+
+          async salvarEdicao(post) {
+            await fetch("/api/edit-post", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: post.id, mensagem: post.msgEdit }),
+            });
+            this.carregarFeed();
+          },
+
+          async apagarPost(id) {
+            if (!confirm("Apagar?")) return;
+            await fetch("/api/delete-post", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id }),
+            });
+            this.carregarFeed();
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
