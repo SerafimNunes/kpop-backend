@@ -9,8 +9,17 @@ require (
 )
 
 require (
+	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.6.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	gorm.io/driver/postgres v1.6.0 // indirect
+	gorm.io/gorm v1.31.1 // indirect
 )
 
 require (
@@ -27,6 +36,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
 	github.com/googleapis/gax-go/v2 v2.16.0 // indirect
+	github.com/jinzhu/gorm v1.9.16
 	github.com/joho/godotenv v1.5.1 // direct
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 // indirect

@@ -1,35 +1,56 @@
 package handler
 
 import (
-	"context"
-	"kpop-backend/translate" // Certifique-se que o caminho do módulo está correto
 	"log"
+	"net/http"
+	"strconv"
+
+	"kpop-backend/hub" // Certifique-se que o caminho do módulo está correto
+	"kpop-backend/translate"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
-// ProcessarAudio cuida das mensagens de áudio (vinda do site/websocket)
-func ProcessarAudio(apiKey string, audioData []byte) (string, error) {
-	ctx := context.Background()
-
-	traducao, err := translate.TraduzirLive(ctx, apiKey, audioData)
-	if err != nil {
-		log.Printf("Erro ao processar áudio no tradutor: %v", err)
-		return "", err
-	}
-
-	return traducao, nil
+// Configuração do Upgrader para permitir conexões de diferentes origens (CORS)
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // No MVP permitimos todas, no futuro restringimos ao app
+	},
 }
 
-// TraduzirTextoSimples cuida das mensagens de texto (vinda do seu novo App)
-func TraduzirTextoSimples(apiKey string, texto string) (string, error) {
-	ctx := context.Background()
-
-	// Aqui chamamos o translate enviando o texto.
-	// Vou assumir que vamos criar essa função 'TraduzirTexto' no seu pacote translate.
-	traducao, err := translate.TraduzirTexto(ctx, apiKey, texto)
+// ServeWS lida com as requisições de WebSocket vindas do app ou web
+func ServeWS(h *hub.Hub, svc *translate.GeminiService, w http.ResponseWriter, r *http.Request) {
+	// 1. Extrai o LiveID da URL (ex: /ws/live/10)
+	vars := mux.Vars(r)
+	liveIDStr := vars["id"]
+	liveID, err := strconv.ParseUint(liveIDStr, 10, 32)
 	if err != nil {
-		log.Printf("Erro ao traduzir texto do app: %v", err)
-		return "", err
+		log.Printf("ID de live inválido: %v", err)
+		return
 	}
 
-	return traducao, nil
+	// 2. Faz o Upgrade da conexão HTTP para WebSocket
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Erro no upgrade do WebSocket: %v", err)
+		return
+	}
+
+	// 3. Cria a instância do cliente
+	client := &hub.Client{
+		Hub:    h,
+		Conn:   conn,
+		Send:   make(chan []byte, 256),
+		LiveID: uint(liveID),
+	}
+
+	// 4. Registra no Hub
+	client.Hub.Register <- client
+
+	// 5. Inicia as rotinas de leitura e escrita
+	go client.WritePump()
+	go client.ReadPump()
 }

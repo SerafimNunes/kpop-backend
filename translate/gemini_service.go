@@ -2,70 +2,76 @@ package translate
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
+	"strings"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
 
-// TraduzirLive usando o modelo mais recente de 2025
-func TraduzirLive(ctx context.Context, apiKey string, audioChunk []byte) (string, error) {
+// Estrutura para facilitar o tráfego de dados
+type RefinedTranslation struct {
+	Original string `json:"original"`
+	Traducao string `json:"traducao"`
+}
+
+type GeminiService struct {
+	client *genai.Client
+	model  *genai.GenerativeModel
+}
+
+// NewGeminiService inicia o serviço uma única vez (chamar no main.go)
+func NewGeminiService(ctx context.Context, apiKey string) (*GeminiService, error) {
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	defer client.Close()
 
-	// Atualizado para o modelo atual de 2025
 	model := client.GenerativeModel("gemini-2.0-flash-exp")
-
 	model.SystemInstruction = &genai.Content{
 		Parts: []genai.Part{
-			genai.Text("Você é uma ARMY tradutora em tempo real. Sua especialidade é o BTS e o universo K-Pop. " +
-				"O áudio vem de lives (Weverse/YouTube) e pode ter barulho de fundo ou música. " +
-				"Transcreva o coreano e traduza para o português brasileiro usando o vocabulário do fandom. " +
-				"Mantenha honoríficos e expressões de carinho. " +
-				"Responda EXCLUSIVAMENTE em JSON: {\"original\": \"...\", \"traducao\": \"...\"}"),
+			genai.Text("Você é uma tradutora especialista em K-Pop (ARMY). " +
+				"Sua tarefa é receber uma transcrição bruta de uma live e refiná-la. " +
+				"1. Corrija erros de transcrição. " +
+				"2. Traduza para Português Brasileiro com gírias do fandom. " +
+				"3. Mantenha honoríficos (Oppa, Unnie, Hyung). " +
+				"Responda SEMPRE no formato JSON: {\"original\": \"...\", \"traducao\": \"...\"}"),
 		},
 	}
 
-	resp, err := model.GenerateContent(ctx, genai.Blob{
-		MIMEType: "audio/webm",
-		Data:     audioChunk,
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	return extrairResposta(resp), nil
+	return &GeminiService{client: client, model: model}, nil
 }
 
-func TraduzirTexto(ctx context.Context, apiKey string, textoCoreano string) (string, error) {
-	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+// RefinarETraduzir pega o texto do Chirp e prepara para o fã
+func (s *GeminiService) RefinarETraduzir(ctx context.Context, textoBruto string) (*RefinedTranslation, error) {
+	resp, err := s.model.GenerateContent(ctx, genai.Text(textoBruto))
 	if err != nil {
-		return "", err
-	}
-	defer client.Close()
-
-	model := client.GenerativeModel("gemini-2.0-flash-exp")
-
-	prompt := fmt.Sprintf("Aja como uma ARMY tradutora. Traduza do coreano para o português: %s. "+
-		"Use gírias do fandom (Borahae, bias, etc) e mantenha o tom carinhoso.", textoCoreano)
-
-	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
-	if err != nil {
-		log.Printf("Erro Gemini: %v", err)
-		return "", err
+		return nil, err
 	}
 
-	return extrairResposta(resp), nil
+	rawJSON := s.extrairTexto(resp)
+
+	// Limpa possíveis marcações de markdown ```json ... ```
+	rawJSON = strings.TrimPrefix(rawJSON, "```json")
+	rawJSON = strings.TrimSuffix(rawJSON, "```")
+	rawJSON = strings.TrimSpace(rawJSON)
+
+	var result RefinedTranslation
+	if err := json.Unmarshal([]byte(rawJSON), &result); err != nil {
+		return nil, fmt.Errorf("falha ao parsear JSON da IA: %v", err)
+	}
+
+	return &result, nil
 }
 
-func extrairResposta(resp *genai.GenerateContentResponse) string {
+func (s *GeminiService) extrairTexto(resp *genai.GenerateContentResponse) string {
 	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
 		return fmt.Sprintf("%v", resp.Candidates[0].Content.Parts[0])
 	}
 	return ""
+}
+
+func (s *GeminiService) Close() {
+	s.client.Close()
 }
