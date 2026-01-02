@@ -2,17 +2,19 @@ package handler
 
 import (
 	"context"
+	"kpop-backend/db"
 	"kpop-backend/hub"
+	"kpop-backend/models"
 	"kpop-backend/translate"
 	"log"
 	"sync"
+	"time"
 )
 
 type AudioProcessor struct {
 	GeminiSvc *translate.GeminiService
 	Hub       *hub.Hub
-	// Adicionar aqui o cliente do Google Chirp v2 quando configurarmos as credenciais
-	mu sync.Mutex
+	mu        sync.Mutex
 }
 
 func NewAudioProcessor(g *translate.GeminiService, h *hub.Hub) *AudioProcessor {
@@ -22,38 +24,71 @@ func NewAudioProcessor(g *translate.GeminiService, h *hub.Hub) *AudioProcessor {
 	}
 }
 
-// ProcessAudioChunk recebe o áudio, filtra silêncio/música e orquestra as IAs
+// ProcessAudioChunk orquestra o fluxo: VAD -> Chirp v2 (STT) -> Gemini (Tradução) -> DB/Web
 func (ap *AudioProcessor) ProcessAudioChunk(ctx context.Context, liveID uint, audioData []byte) {
 	// 1. LÓGICA DE PERCEPÇÃO (VAD Local)
-	// Aqui implementaríamos um check de amplitude simples ou integração com lib VAD
 	if !isSpeech(audioData) {
-		return // Ignora música, bateria ou silêncio para poupar tokens/créditos
+		return
 	}
 
-	// 2. TRANSCRIÇÃO (Google Chirp v2)
-	// Por agora, simulamos a saída do Chirp.
-	// Em breve faremos o streaming gRPC real para o Google.
-	rawText := "Texto bruto vindo do Chirp"
+	// 2. TRANSCRIÇÃO (Placeholder para Google Chirp v2)
+	// O Chirp v2 processará o áudio coreano aqui.
+	rawText := "Texto capturado pelo Chirp v2"
 
-	// 3. REFINAMENTO (Gemini 2.0 Flash)
+	// 3. REFINAMENTO CONTEXTUAL (Gemini 2.0 Flash)
+	// Usa a lógica que definimos para tradução não-estática.
 	refined, err := ap.GeminiSvc.RefinarETraduzir(ctx, rawText)
 	if err != nil {
 		log.Printf("Erro no refinamento Gemini: %v", err)
 		return
 	}
 
-	// 4. DISTRIBUIÇÃO VIA HUB
+	// 4. PERSISTÊNCIA E DISTRIBUIÇÃO
+	timestamp := time.Now().UnixMilli()
+
+	// Salva no Banco para o "Netflix de Lives"
+	captionLog := models.CaptionLog{
+		LiveArchiveID: liveID,
+		Timestamp:     timestamp,
+		OriginalText:  refined.Original,
+		RefinedText:   refined.Traducao,
+	}
+	db.DB.Create(&captionLog)
+
+	// Envia via WebSocket para o Web App (Mobile Friendly)
 	ap.Hub.Broadcast <- hub.SubtitleMessage{
 		LiveID:    liveID,
 		Text:      refined.Traducao,
-		Timestamp: 0, // Implementar sync de tempo real
+		Timestamp: timestamp,
 		IsFinal:   true,
 	}
 }
 
-// isSpeech faz a triagem inicial do áudio para evitar processar ruído
+// StartMockSubtitles - Útil para testar o layout roxo no celular sem áudio real
+func (ap *AudioProcessor) StartMockSubtitles(liveID uint) {
+	frases := []string{
+		"Olá ARMYs! 💜",
+		"O Chirp v2 está ouvindo...",
+		"Gemini 2.0 traduzindo em tempo real...",
+		"Este é o layout mobile-friendly!",
+		"Saranghae! (Eu amo vocês)",
+	}
+
+	i := 0
+	for {
+		time.Sleep(4 * time.Second)
+		msg := hub.SubtitleMessage{
+			LiveID:    liveID,
+			Text:      frases[i%len(frases)],
+			Timestamp: time.Now().UnixMilli(),
+			IsFinal:   true,
+		}
+		ap.Hub.Broadcast <- msg
+		i++
+	}
+}
+
 func isSpeech(data []byte) bool {
-	// Implementação inicial: verificar se o buffer não está vazio ou abaixo de um threshold
-	// No futuro, usamos uma lib de FFT para detectar frequências de voz humana
+	// Filtro simples de silêncio/tamanho de pacote
 	return len(data) > 500
 }
