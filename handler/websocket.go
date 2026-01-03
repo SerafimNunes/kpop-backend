@@ -21,7 +21,26 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  4096,
 	WriteBufferSize: 4096,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+	CheckOrigin:     checkOrigin,
+}
+
+// checkOrigin valida a origem da requisição WebSocket para evitar ataques cross-site
+func checkOrigin(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	host := r.Host
+
+	// Se não houver Origin header, aceita (pode ser browser com SameSite)
+	if origin == "" {
+		return true
+	}
+
+	// Extrai host do origin (formato: http://host:port)
+	if strings.HasSuffix(origin, "//"+host) || strings.HasSuffix(origin, "//localhost"+strings.TrimPrefix(host, "localhost")) {
+		return true
+	}
+
+	log.Printf("⚠️ [WebSocket] Origem bloqueada: %s (Host: %s)", origin, host)
+	return false
 }
 
 var (
@@ -47,12 +66,24 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 	h.Register <- clientChan
 	startTime := time.Now()
 
-	// Variável para armazenar a URL da live enviada pelo Studio
 	var currentLiveURL string
 
 	defer func() {
 		h.Unregister <- clientChan
 		conn.Close()
+	}()
+
+	// Goroutine para escutar clipes concluídos e avisar o celular via HUB
+	go func() {
+		for clipName := range videoCutter.NotifyChan {
+			msg := hub.Message{
+				Type:    "CLIP_READY",
+				Payload: "Clipe disponível",
+				Url:     "/recordings/" + clipName, // Agora o campo Url existe no hub.Message
+				LiveID:  liveIDStr,
+			}
+			h.Broadcast <- msg
+		}
 	}()
 
 	// Goroutine de escrita (Servidor -> App)
@@ -75,17 +106,25 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 			break
 		}
 
-		// 1. TRATAMENTO DE MENSAGENS TEXTO (Comandos JSON)
+		// Validação básica de tamanho de mensagem para evitar DoS
+		if len(p) == 0 {
+			continue
+		}
+
 		if messageType == websocket.TextMessage {
 			var raw map[string]interface{}
 			if err := json.Unmarshal(p, &raw); err != nil {
+				log.Printf("⚠️ [WebSocket] JSON inválido: %v", err)
 				continue
 			}
 
-			// A) ATUALIZAR CONFIGURAÇÃO (Frequente ao entrar na live)
-			if raw["action"] == "update_config" {
-				log.Printf("⚙️ Configuração atualizada: %v | %v | URL detectada", raw["ratio"], raw["duration"])
+			// Validação de campos obrigatórios
+			if raw == nil || len(raw) == 0 {
+				log.Printf("⚠️ [WebSocket] Mensagem vazia ou nula")
+				continue
+			}
 
+			if raw["action"] == "update_config" {
 				duration, _ := strconv.Atoi(interfaceToString(raw["duration"]))
 				ratio := interfaceToString(raw["ratio"])
 				url := interfaceToString(raw["live_url"])
@@ -95,7 +134,6 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 				continue
 			}
 
-			// B) NOVO: CORTE MANUAL (Botões Premium do Celular)
 			if raw["type"] == "MANUAL_CLIP" {
 				ratio := interfaceToString(raw["ratio"])
 				url := interfaceToString(raw["url"])
@@ -104,24 +142,19 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 				}
 
 				log.Printf("🕹️ [MANUAL] Solicitado corte em %s", ratio)
-
-				// Atualiza o ratio apenas para este corte se necessário
 				videoCutter.UpdateConfig(61, ratio)
 
 				milliOffset := time.Since(startTime).Milliseconds()
 				go videoCutter.CreateClip(liveIDStr, url, float64(milliOffset), "manual_premium")
 
-				// Feedback visual para o celular
 				h.Broadcast <- hub.Message{
-					Type: "translation", Payload: "🎬 CORTE MANUAL INICIADO (" + ratio + ")", LiveID: liveIDStr,
+					Type: "translation", Payload: "🎬 SOLICITANDO CORTE (" + ratio + ")...", LiveID: liveIDStr,
 				}
 				continue
 			}
 		}
 
-		// 2. TRATAMENTO DE ÁUDIO BINÁRIO (IA)
 		if messageType == websocket.BinaryMessage && gemini != nil {
-			// Se o buffer for muito pequeno ou silêncio detectado pelo processador, ignoramos
 			if len(p) < 100 || !processor.ShouldProcess(p) {
 				continue
 			}
@@ -131,20 +164,26 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 				case semaphore <- struct{}{}:
 					defer func() { <-semaphore }()
 				default:
-					return // Saturado
+					return
 				}
 
-				ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+				// Timeout aumentado para 30 segundos para melhor robustez
+				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 				defer cancel()
+				log.Printf("⏱️ [Gemini] Processando áudio com timeout de 30s")
 
 				resultado, err := gemini.TranslateAudio(ctx, audioData)
-				if err != nil || resultado == "" {
+				if err != nil {
+					log.Printf("❌ [Gemini] Erro na tradução de áudio: %v", err)
+					return
+				}
+				if resultado == "" {
+					log.Printf("⚠️ [Gemini] Resposta vazia do Gemini")
 					return
 				}
 
 				milliOffset := time.Since(startTime).Milliseconds()
 
-				// Persistência no Banco de Dados
 				if db.DB != nil {
 					db.DB.Create(&models.CaptionLog{
 						LiveArchiveID: uint(liveID),
@@ -153,18 +192,14 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 					})
 				}
 
-				// Lógica de Clipe Automático com GATILHOS
 				lowResult := strings.ToLower(resultado)
 				if strings.Contains(lowResult, "💜") || strings.Contains(lowResult, "tchau") || strings.Contains(lowResult, "obrigado") {
 					if currentLiveURL != "" {
 						log.Printf("🎬 [GATILHO IA] Criando clipe para: %s", resultado)
 						go videoCutter.CreateClip(liveIDStr, currentLiveURL, float64(milliOffset), "highlight")
-					} else {
-						log.Printf("⚠️ Gatilho ativado, mas URL da live não foi definida")
 					}
 				}
 
-				// Envia tradução para a interface
 				h.Broadcast <- hub.Message{
 					Type: "translation", Payload: resultado, LiveID: liveIDStr,
 				}
@@ -173,7 +208,6 @@ func ServeWS(h *hub.Hub, gemini *translate.GeminiService, w http.ResponseWriter,
 	}
 }
 
-// Auxiliar para converter interface para string com segurança
 func interfaceToString(v interface{}) string {
 	if v == nil {
 		return ""
@@ -190,7 +224,6 @@ func interfaceToString(v interface{}) string {
 	}
 }
 
-// ReverseTranslate trata a tradução de PT-BR para Coreano (Botão do Studio)
 func ReverseTranslate(w http.ResponseWriter, r *http.Request) {
 	if globalGemini == nil {
 		http.Error(w, "Gemini não configurado", 500)

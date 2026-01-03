@@ -14,6 +14,14 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
+	// Validação de credenciais obrigatórias (sem fallbacks)
+	requiredVars := []string{"DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_PORT"}
+	for _, v := range requiredVars {
+		if os.Getenv(v) == "" {
+			log.Fatalf("❌ ERRO: Variável de ambiente %s não definida", v)
+		}
+	}
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
@@ -27,7 +35,7 @@ func InitDB() {
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		log.Fatal("Falha ao conectar no banco de dados:", err)
+		log.Fatal("❌ Falha ao conectar no banco de dados:", err)
 	}
 
 	// Sincroniza as tabelas respeitando os nomes que você definiu:

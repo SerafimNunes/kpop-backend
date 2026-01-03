@@ -6,9 +6,10 @@ import (
 
 // Message define a estrutura de dados que viaja via WebSocket
 type Message struct {
-	Type    string      `json:"type"` // "translation", "ad", "system", "vip_alert"
+	Type    string      `json:"type"` // "translation", "ad", "system", "vip_alert", "CLIP_READY"
 	Payload interface{} `json:"payload"`
 	LiveID  string      `json:"live_id,omitempty"` // Identificador da live para o "tubo" correto
+	Url     string      `json:"url,omitempty"`     // CAMPO ADICIONADO: Para o link de download do clipe
 }
 
 // Hub mantém o conjunto de clientes ativos e faz o broadcast das mensagens

@@ -16,3 +16,6 @@ kpop-app/.expo/
 
 #media
 recordings/
+
+# Google Cloud
+google-creds.json

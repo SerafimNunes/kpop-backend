@@ -81,12 +81,25 @@
       .cursor-grabbing {
         cursor: grabbing;
       }
+
+      /* Transição suave para os controles sumindo */
+      .ui-fade-enter-active,
+      .ui-fade-leave-active {
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .ui-fade-enter-start,
+      .ui-fade-leave-end {
+        opacity: 0;
+        transform: translateY(10px);
+      }
     </style>
   </head>
   <body
     x-data="studioManager()"
     class="select-none overflow-hidden"
     :class="isFull ? 'fullscreen-mode' : ''"
+    @mousemove="resetIdleTimer()"
+    @touchstart="resetIdleTimer()"
   >
     <aside
       x-show="!isCapturing"
@@ -150,22 +163,24 @@
         </div>
       </template>
 
-      <div 
-        x-show="isCapturing" 
+      <div
+        x-show="isCapturing && showUI"
+        x-transition:enter="ui-fade-enter-active"
+        x-transition:leave="ui-fade-leave-active"
         class="fixed bottom-24 left-6 z-[60] flex flex-col gap-3 pointer-events-auto"
       >
-          <button 
-            @click="sendManualClip('9:16')" 
-            class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center shadow-2xl active:scale-90 border-2 border-white/20"
-          >
-            <span class="text-[10px] font-black">9:16</span>
-          </button>
-          <button 
-            @click="sendManualClip('16:9')" 
-            class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl active:scale-90 border-2 border-white/20"
-          >
-            <span class="text-[10px] font-black">16:9</span>
-          </button>
+        <button
+          @click="sendManualClip('9:16')"
+          class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center shadow-2xl active:scale-90 border-2 border-white/20"
+        >
+          <span class="text-[10px] font-black">9:16</span>
+        </button>
+        <button
+          @click="sendManualClip('16:9')"
+          class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl active:scale-90 border-2 border-white/20"
+        >
+          <span class="text-[10px] font-black">16:9</span>
+        </button>
       </div>
 
       <div
@@ -193,7 +208,7 @@
       <div
         class="fixed z-50 touch-none"
         :style="`left: ${chatPos.x}px; top: ${chatPos.y}px;`"
-        x-show="isCapturing"
+        x-show="isCapturing && (showUI || chatOpen)"
       >
         <div
           x-show="chatOpen"
@@ -216,15 +231,28 @@
 
             <div class="grid grid-cols-2 gap-2">
               <div class="space-y-1">
-                <label class="text-[8px] font-bold uppercase text-white/50">Formato</label>
-                <select x-model="prodRatio" @change="updateProdConfig()" class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] outline-none">
+                <label class="text-[8px] font-bold uppercase text-white/50"
+                  >Formato</label
+                >
+                <select
+                  x-model="prodRatio"
+                  @change="updateProdConfig()"
+                  class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] outline-none"
+                >
                   <option value="9:16">TikTok (9:16)</option>
                   <option value="16:9">YouTube (16:9)</option>
                 </select>
               </div>
               <div class="space-y-1">
-                <label class="text-[8px] font-bold uppercase text-white/50">Tempo (s)</label>
-                <input type="number" x-model="prodDuration" @change="updateProdConfig()" class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] outline-none" />
+                <label class="text-[8px] font-bold uppercase text-white/50"
+                  >Tempo (s)</label
+                >
+                <input
+                  type="number"
+                  x-model="prodDuration"
+                  @change="updateProdConfig()"
+                  class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] outline-none"
+                />
               </div>
             </div>
 
@@ -291,7 +319,9 @@
       </div>
 
       <div
-        x-show="isCapturing"
+        x-show="isCapturing && showUI"
+        x-transition:enter="ui-fade-enter-active"
+        x-transition:leave="ui-fade-leave-active"
         class="absolute top-6 left-6 right-6 flex justify-between items-center z-50 pointer-events-none"
       >
         <button
@@ -338,7 +368,7 @@
           isFull: false,
           fontSize: 28,
           subTextColor: "#ffffff",
-          
+
           prodRatio: "9:16",
           prodDuration: 61,
 
@@ -351,6 +381,10 @@
           },
           isDraggingChat: false,
           dragOffset: { x: 0, y: 0 },
+
+          // Variáveis para Auto-hide
+          showUI: true,
+          idleTimeout: null,
 
           init() {
             this.connectWS();
@@ -369,28 +403,44 @@
             });
           },
 
+          resetIdleTimer() {
+            this.showUI = true;
+            clearTimeout(this.idleTimeout);
+            // Esconde após 4 segundos de inatividade
+            this.idleTimeout = setTimeout(() => {
+              if (!this.chatOpen) this.showUI = false;
+            }, 4000);
+          },
+
           updateProdConfig() {
             if (this.ws?.readyState === WebSocket.OPEN) {
-              this.ws.send(JSON.stringify({
-                action: "update_config",
-                ratio: this.prodRatio,
-                duration: parseInt(this.prodDuration),
-                live_url: this.liveUrl
-              }));
+              this.ws.send(
+                JSON.stringify({
+                  action: "update_config",
+                  ratio: this.prodRatio,
+                  duration: parseInt(this.prodDuration),
+                  live_url: this.liveUrl,
+                })
+              );
             }
           },
 
           sendManualClip(ratio) {
             if (this.ws?.readyState === WebSocket.OPEN) {
-                this.ws.send(JSON.stringify({
-                    type: "MANUAL_CLIP",
-                    ratio: ratio,
-                    url: this.liveUrl,
-                    label: "MANUAL_STUDIO"
-                }));
-                const oldText = this.currentSubtitle;
-                this.currentSubtitle = "🎬 SOLICITANDO CORTE " + ratio + "...";
-                setTimeout(() => { if(this.currentSubtitle.includes("SOLICITANDO")) this.currentSubtitle = oldText }, 3000);
+              this.ws.send(
+                JSON.stringify({
+                  type: "MANUAL_CLIP",
+                  ratio: ratio,
+                  url: this.liveUrl,
+                  label: "MANUAL_STUDIO",
+                })
+              );
+              const oldText = this.currentSubtitle;
+              this.currentSubtitle = "🎬 SOLICITANDO CORTE " + ratio + "...";
+              setTimeout(() => {
+                if (this.currentSubtitle.includes("SOLICITANDO"))
+                  this.currentSubtitle = oldText;
+              }, 3000);
             }
           },
 
@@ -402,7 +452,8 @@
               this.isFull = true;
             } else {
               if (document.exitFullscreen) document.exitFullscreen();
-              else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+              else if (document.webkitExitFullscreen)
+                document.webkitExitFullscreen();
               this.isFull = false;
             }
           },
@@ -411,6 +462,7 @@
             const clientY = e.clientY || e.touches[0].clientY;
             this.dragOffset.y = clientY - this.subPos.y;
             this.isDraggingSub = true;
+            this.resetIdleTimer();
           },
 
           startDragChat(e) {
@@ -420,20 +472,31 @@
             this.dragOffset.y = clientY - this.chatPos.y;
             this._tempDragChat = true;
             this.isDraggingChat = false;
+            this.resetIdleTimer();
           },
 
           onGlobalMove(e) {
+            this.resetIdleTimer();
             if (this.isDraggingSub) {
               let newY = e.clientY - this.dragOffset.y;
-              this.subPos.y = Math.max(50, Math.min(window.innerHeight - 50, newY));
+              this.subPos.y = Math.max(
+                50,
+                Math.min(window.innerHeight - 50, newY)
+              );
             }
 
             if (this._tempDragChat) {
               this.isDraggingChat = true;
               let newX = e.clientX - this.dragOffset.x;
               let newY = e.clientY - this.dragOffset.y;
-              this.chatPos.x = Math.max(10, Math.min(window.innerWidth - 70, newX));
-              this.chatPos.y = Math.max(10, Math.min(window.innerHeight - 70, newY));
+              this.chatPos.x = Math.max(
+                10,
+                Math.min(window.innerWidth - 70, newX)
+              );
+              this.chatPos.y = Math.max(
+                10,
+                Math.min(window.innerHeight - 70, newY)
+              );
             }
           },
 
@@ -446,18 +509,36 @@
           getEmbedUrl(url) {
             let id = "";
             if (url.includes("v=")) id = url.split("v=")[1].split("&")[0];
-            else if (url.includes("live/")) id = url.split("live/")[1].split("?")[0];
-            else if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1].split("?")[0];
+            else if (url.includes("live/"))
+              id = url.split("live/")[1].split("?")[0];
+            else if (url.includes("youtu.be/"))
+              id = url.split("youtu.be/")[1].split("?")[0];
             else id = url.split("/").pop();
             return `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0`;
           },
 
           connectWS() {
-            const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-            this.ws = new WebSocket(`${protocol}://${window.location.host}/ws/studio/1`);
+            const protocol =
+              window.location.protocol === "https:" ? "wss" : "ws";
+            this.ws = new WebSocket(
+              `${protocol}://${window.location.host}/ws/studio/1`
+            );
 
             this.ws.onmessage = (e) => {
               const data = JSON.parse(e.data);
+
+              // Mágica do Download Automático
+              if (data.type === "CLIP_READY" && data.url) {
+                this.currentSubtitle = "✅ CLIPE PRONTO! BAIXANDO...";
+                const link = document.createElement("a");
+                link.href = data.url;
+                link.download = ""; // Força o download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => (this.currentSubtitle = ""), 4000);
+              }
+
               if (data.type === "translation" && data.payload) {
                 this.currentSubtitle = data.payload;
 
@@ -483,6 +564,7 @@
             try {
               await navigator.mediaDevices.getUserMedia({ audio: true });
               this.isCapturing = true;
+              this.resetIdleTimer(); // Inicia o contador de auto-hide
               setTimeout(() => {
                 this.updateProdConfig();
                 this.startAudioProcessing();
@@ -493,8 +575,11 @@
           },
 
           async startAudioProcessing() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+            });
+            const audioCtx = new (window.AudioContext ||
+              window.webkitAudioContext)({ sampleRate: 16000 });
             const source = audioCtx.createMediaStreamSource(stream);
             const processor = audioCtx.createScriptProcessor(4096, 1, 1);
             source.connect(processor);

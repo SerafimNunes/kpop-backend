@@ -3,8 +3,9 @@ package translate
 import (
 	"context"
 	"fmt"
+	"os"
 
-	"github.com/google/generative-ai-go/genai"
+	"cloud.google.com/go/vertexai/genai"
 	"google.golang.org/api/option"
 )
 
@@ -13,20 +14,34 @@ type GeminiService struct {
 	model  *genai.GenerativeModel
 }
 
-func NewGeminiService(ctx context.Context, apiKey string) (*GeminiService, error) {
-	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+func NewGeminiService(ctx context.Context) (*GeminiService, error) {
+	// A Vertex AI exige o ID do projeto e a localização (ex: us-central1)
+	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	location := os.Getenv("GOOGLE_CLOUD_LOCATION") // Ex: us-central1
+
+	// O caminho para o arquivo JSON de credenciais que você vai gerar
+	credentialsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+	// Inicializa o cliente usando as credenciais do Google Cloud
+	client, err := genai.NewClient(ctx, projectID, location, option.WithCredentialsFile(credentialsFile))
 	if err != nil {
-		return nil, fmt.Errorf("falha ao criar cliente gemini: %v", err)
+		return nil, fmt.Errorf("falha ao criar cliente Vertex AI: %v", err)
 	}
 
-	// Usando o modelo 2.0 Flash para velocidade e custo-benefício
-	model := client.GenerativeModel("gemini-2.0-flash")
+	model := client.GenerativeModel("gemini-2.0-flash-001")
 
-	// Configuração do sistema otimizada para K-Pop
-	model.SystemInstruction = genai.NewUserContent(genai.Text(
-		"Você é um tradutor simultâneo de K-pop especializado em lives. " +
-			"Traduza o áudio coreano para português brasileiro de forma natural e informal. " +
-			"Se houver música ou silêncio, ignore. Seja conciso e use termos do fandom quando apropriado."))
+	// Instrução de Sistema Robusta (Chirp v2 style)
+	model.SystemInstruction = &genai.Content{
+		Parts: []genai.Part{genai.Text(
+			"Você é um tradutor simultâneo especializado em lives de K-pop (K-LENS STUDIO). " +
+				"Sua tarefa é converter áudio coreano para português brasileiro natural. " +
+				"REGRAS CRÍTICAS: " +
+				"1. Se houver música predominante, responda apenas: [MÚSICA]. " +
+				"2. Se houver silêncio ou apenas ruído de fundo, responda: [SILÊNCIO]. " +
+				"3. Se houver fala, seja informal, use gírias do fandom (bias, comeback, etc). " +
+				"4. Seja extremamente conciso para caber em legendas rápidas.",
+		)},
+	}
 
 	return &GeminiService{
 		client: client,
@@ -34,48 +49,48 @@ func NewGeminiService(ctx context.Context, apiKey string) (*GeminiService, error
 	}, nil
 }
 
-// TranslateAudio: Tradução da Live (Coreano -> PT-BR)
 func (s *GeminiService) TranslateAudio(ctx context.Context, audioData []byte) (string, error) {
-	data := genai.Blob{
-		MIMEType: "audio/webm", // Compatível com o que o navegador envia
-		Data:     audioData,
+	// Na Vertex AI, enviamos o blob de áudio como parte do conteúdo
+	prompt := []genai.Part{
+		genai.Blob{
+			MIMEType: "audio/webm",
+			Data:     audioData,
+		},
+		genai.Text("Traduza o áudio acima."),
 	}
 
-	resp, err := s.model.GenerateContent(ctx, data)
+	resp, err := s.model.GenerateContent(ctx, prompt...)
 	if err != nil {
-		return "", fmt.Errorf("erro na geração de conteúdo: %v", err)
+		return "", fmt.Errorf("erro vertex ai audio: %v", err)
 	}
 
-	if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil {
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
 		return "", nil
 	}
 
-	var translatedText string
+	var output string
 	for _, part := range resp.Candidates[0].Content.Parts {
 		if text, ok := part.(genai.Text); ok {
-			translatedText += string(text)
+			output += string(text)
 		}
 	}
 
-	return translatedText, nil
+	return output, nil
 }
 
-// TranslateText: Chat Reverso (PT-BR -> Coreano Casual)
 func (s *GeminiService) TranslateText(ctx context.Context, text string) (string, error) {
-	// Prompt específico para soar natural para o Idol
-	prompt := fmt.Sprintf("Traduza para coreano casual e fofo (estilo Weverse) para um Idol de K-pop. Retorne apenas a tradução: %s", text)
-	
+	prompt := fmt.Sprintf("Traduza para coreano casual/fofo de Weverse (apenas o texto): %s", text)
 	resp, err := s.model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
 		return "", err
 	}
 
-	if len(resp.Candidates) > 0 && resp.Candidates[0].Content != nil {
+	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
 		if t, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
 			return string(t), nil
 		}
 	}
-	return "", fmt.Errorf("não foi possível traduzir o texto")
+	return "", fmt.Errorf("falha na tradução de texto via Vertex")
 }
 
 func (s *GeminiService) Close() {
