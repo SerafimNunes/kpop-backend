@@ -11,8 +11,8 @@ import (
 )
 
 type Config struct {
-	ClipDuration int    // Segundos (ex: 61 para 1:01)
-	AspectRatio  string // "9:16" ou "16:9"
+	ClipDuration int
+	AspectRatio  string
 }
 
 type Cutter struct {
@@ -31,17 +31,16 @@ func NewCutter() *Cutter {
 	}
 }
 
-// GetStreamURL revisado para lidar com URLs duplas (Vídeo + Áudio)
 func (c *Cutter) GetStreamURL(youtubeURL string) ([]string, error) {
 	log.Printf("🔍 [yt-dlp] Resolvendo URL: %s", youtubeURL)
 
 	ytDlpPath := `C:\Users\seraf\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\Scripts\yt-dlp.exe`
 
-	// Usamos -g para pegar as URLs. O yt-dlp retorna vídeo e áudio em linhas separadas.
-	cmd := exec.Command(ytDlpPath, "-g", "-f", "bestvideo+bestaudio/best", youtubeURL)
+	// Adicionamos --no-playlist para ser mais rápido se for link de lista
+	cmd := exec.Command(ytDlpPath, "--no-playlist", "-g", "-f", "bestvideo+bestaudio/best", youtubeURL)
 	out, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("erro ao executar yt-dlp: %v", err)
+		return nil, fmt.Errorf("erro yt-dlp: %v", err)
 	}
 
 	urls := strings.Split(strings.TrimSpace(string(out)), "\n")
@@ -56,67 +55,67 @@ func (c *Cutter) UpdateConfig(duration int, ratio string) {
 
 func (c *Cutter) CreateClip(liveID string, youtubeURL string, timestamp float64, label string) {
 	go func() {
-		// 1. Obter as URLs (pode retornar 1 ou 2 URLs)
+		// 1. Obter URLs
 		urls, err := c.GetStreamURL(youtubeURL)
 		if err != nil || len(urls) == 0 {
-			log.Printf("❌ [Cutter] Falha ao obter stream: %v", err)
+			log.Printf("❌ [Cutter] Erro ao obter URLs: %v", err)
 			return
 		}
 
-		// 2. Calcular ponto de início
+		// 2. Calcular ponto de início (puxando 5s antes do clique)
 		startPoint := (timestamp / 1000.0) - 5.0
 		if startPoint < 0 {
 			startPoint = 0
 		}
 
-		// 3. Preparar nomes e caminhos
+		// 3. Nomes e Caminhos
 		safeRatio := strings.ReplaceAll(c.CurrentConf.AspectRatio, ":", "x")
 		clipName := fmt.Sprintf("KLENS_%s_%s_%s.mp4", label, safeRatio, time.Now().Format("150405"))
 		outputPath := filepath.Join(c.StoragePath, clipName)
 
-		// 4. Filtros de Vídeo
+		// 4. Filtros (Marca d'água incluída)
+		watermark := "K-LENS STUDIO"
 		var videoFilter string
 		if c.CurrentConf.AspectRatio == "9:16" {
-			videoFilter = "crop=ih*9/16:ih"
+			videoFilter = fmt.Sprintf("crop=ih*9/16:ih,unsharp=3:3:1.5:3:3:0.5,drawtext=text='%s':fontcolor=white@0.8:fontsize=24:x=(w-tw)/2:y=60:shadowcolor=black:shadowx=2:shadowy=2", watermark)
 		} else {
-			videoFilter = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2"
+			videoFilter = fmt.Sprintf("scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,drawtext=text='%s':fontcolor=white@0.8:fontsize=32:x=(w-tw)/2:y=50:shadowcolor=black:shadowx=2:shadowy=2", watermark)
 		}
 
-		// 5. Montar argumentos do FFmpeg com suporte a Reconnect e Input Duplo
+		// 5. Argumentos do FFmpeg (Ajustados para Windows)
 		args := []string{
 			"-y",
-			"-reconnect", "1",
-			"-reconnect_at_eof", "1",
-			"-reconnect_streamed", "1",
-			"-reconnect_delay_max", "5",
+			"-reconnect", "1", "-reconnect_at_eof", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
 			"-ss", fmt.Sprintf("%.2f", startPoint),
 		}
 
-		// Adiciona cada URL encontrada como um input separado
 		for _, u := range urls {
 			args = append(args, "-i", strings.TrimSpace(u))
 		}
 
-		// Complementa com filtros e codecs
 		args = append(args,
 			"-t", fmt.Sprintf("%d", c.CurrentConf.ClipDuration),
 			"-vf", videoFilter,
 			"-c:v", "libx264",
-			"-preset", "ultrafast", // Mudado para ultrafast para aliviar o CPU
+			"-preset", "ultrafast",
 			"-crf", "23",
 			"-c:a", "aac",
-			"-shortest", // Garante que o vídeo pare quando a menor trilha acabar
+			"-shortest",
 			outputPath,
 		)
 
+		// LOG IMPORTANTE: Ver exatamente o comando que será executado
+		log.Printf("🎬 [Cutter] Iniciando FFmpeg para: %s", clipName)
+
 		cmd := exec.Command("ffmpeg", args...)
 
-		log.Printf("🎬 [Cutter] Recortando: %s", clipName)
+		// Capturar saída de erro do FFmpeg para o Log do Go
+		output, err := cmd.CombinedOutput()
 
-		if err := cmd.Run(); err != nil {
-			log.Printf("❌ [Cutter] Erro FFmpeg: %v", err)
+		if err != nil {
+			log.Printf("❌ [Cutter] FFmpeg falhou: %v\nSaída: %s", err, string(output))
 		} else {
-			log.Printf("✅ [Cutter] Sucesso! Salvo em: %s", outputPath)
+			log.Printf("✅ [Cutter] Clipe concluído com sucesso: %s", clipName)
 		}
 	}()
 }
