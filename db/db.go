@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"kpop-backend/models"
+	"k-lens/models"
 	"log"
 	"os"
 
@@ -22,6 +22,7 @@ func InitDB() {
 		os.Getenv("DB_PORT"),
 	)
 
+	// Mantendo o seu Logger.Info para facilitar o debug durante o desenvolvimento
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -29,7 +30,8 @@ func InitDB() {
 		log.Fatal("Falha ao conectar no banco de dados:", err)
 	}
 
-	// Sincroniza as tabelas de acordo com os arquivos em /models
+	// Sincroniza as tabelas respeitando os nomes que você definiu:
+	// LiveArchive (Histórico de Lives) e CaptionLog (Logs de Legendas/Traduções)
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.LiveArchive{},

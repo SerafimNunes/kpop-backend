@@ -6,11 +6,12 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
-	"kpop-backend/db"
-	"kpop-backend/handler"
-	"kpop-backend/hub"
-	"kpop-backend/translate"
+	"k-lens/db"
+	"k-lens/handler"
+	"k-lens/hub"
+	"k-lens/translate"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -18,7 +19,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("Aviso: .env não carregado, usando variáveis de ambiente")
+		log.Println("Aviso: .env não carregado")
 	}
 
 	ctx := context.Background()
@@ -29,7 +30,7 @@ func main() {
 	if geminiKey != "" {
 		geminiSvc, err = translate.NewGeminiService(ctx, geminiKey)
 		if err != nil {
-			log.Printf("Atenção: Gemini não iniciado: %v", err)
+			log.Printf("Erro Gemini: %v", err)
 		} else {
 			defer geminiSvc.Close()
 		}
@@ -41,15 +42,11 @@ func main() {
 
 	r := mux.NewRouter()
 
-	// Rota WebSocket para legendas e áudio
 	r.HandleFunc("/ws/studio/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handler.ServeWS(legendasHub, geminiSvc, w, r)
 	})
 
-	// Rota para o Chat Reverso (Fã -> Idol)
 	r.HandleFunc("/api/translate-reverse", handler.ReverseTranslate).Methods("POST")
-
-	// Servidor de arquivos estáticos (HTML/JS/CSS)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
 	port := os.Getenv("PORT")
@@ -59,7 +56,7 @@ func main() {
 
 	localIP := getLocalIP()
 	log.Printf("==========================================")
-	log.Printf("🚀 K-STUDIO PRO INICIADO")
+	log.Printf("🚀 K-LENS ARMY STUDIO (FFmpeg 8.0.1)")
 	log.Printf("🔗 PC: http://localhost:%s/studio.html", port)
 	log.Printf("📱 MOBILE: http://%s:%s/studio.html", localIP, port)
 	log.Printf("==========================================")
@@ -68,16 +65,12 @@ func main() {
 }
 
 func getLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return "localhost"
-	}
+	addrs, _ := net.InterfaceAddrs()
 	for _, address := range addrs {
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
 				ipStr := ipnet.IP.String()
-				// Filtra IPs de redes locais comuns
-				if len(ipStr) >= 7 && (ipStr[:7] == "192.168" || ipStr[:3] == "10." || ipStr[:3] == "172.") {
+				if strings.HasPrefix(ipStr, "192.168.") || strings.HasPrefix(ipStr, "10.") {
 					return ipStr
 				}
 			}

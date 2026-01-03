@@ -1,21 +1,27 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
 
-// LiveArchive representa uma live salva para replay futuro
+	"gorm.io/gorm"
+)
+
 type LiveArchive struct {
-	gorm.Model
-	Title       string       `json:"title"`
-	Platform    string       `json:"platform"` // YouTube, Weverse, etc.
-	OriginalURL string       `json:"original_url"`
-	Captions    []CaptionLog `gorm:"foreignKey:LiveArchiveID"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+
+	Title     string `json:"title"`
+	IdolName  string `json:"idol_name"`
+	Platform  string `json:"platform"`   // Ex: Weverse, YouTube
+	VideoPath string `json:"video_path"` // Caminho do arquivo para o FFmpeg
 }
 
-// CaptionLog guarda cada frase traduzida vinculada a um tempo da live
 type CaptionLog struct {
-	gorm.Model
+	ID            uint   `gorm:"primaryKey" json:"id"`
 	LiveArchiveID uint   `json:"live_archive_id"`
-	Timestamp     int64  `json:"timestamp"` // Tempo em milissegundos
-	OriginalText  string `json:"original_text"`
-	RefinedText   string `json:"refined_text"`
+	Timestamp     int64  `json:"timestamp"` // Milissegundos desde o início da live
+	Text          string `json:"text"`      // Tradução da IA
+	IsVipOnly     bool   `gorm:"default:false" json:"is_vip_only"`
 }

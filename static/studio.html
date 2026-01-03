@@ -6,12 +6,16 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>K-Studio PRO | BTS Edition</title>
+    <title>K-LENS | ARMY STUDIO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@400;900&display=swap"
+      rel="stylesheet"
+    />
     <style>
       [x-cloak] {
         display: none !important;
@@ -19,255 +23,304 @@
       body {
         background: #000;
         color: white;
-        overflow-x: hidden;
-        /* Impede scroll elástico no iOS */
+        font-family: "Inter", sans-serif;
+        overflow: hidden;
         position: fixed;
         width: 100%;
         height: 100%;
       }
-      /* Efeito Neon na Borda da Live */
-      .live-canvas {
-        border: 2px solid #ff1493;
-        box-shadow: 0 0 20px rgba(255, 20, 147, 0.2);
+      .font-sync {
+        font-family: "Syncopate", sans-serif;
       }
-      /* Legendas com borda grossa para leitura fácil */
+
+      .glass-purple {
+        background: rgba(88, 28, 135, 0.25);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+      }
+
       .subtitle-overlay {
-        text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000,
-          -1px 1px 0 #000, 1px 1px 0 #000;
+        text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000,
+          2px 2px 0 #000, 0px 0px 15px rgba(0, 0, 0, 1);
         font-weight: 900;
-        font-family: "Arial", sans-serif;
-        pointer-events: none; /* Deixa clicar no vídeo através da legenda */
+        transition: opacity 0.3s ease;
       }
 
-      /* Animação do Chat */
-      .chat-bubble {
-        box-shadow: 0 4px 15px rgba(109, 40, 217, 0.6);
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
-
-      .ui-fade {
-        transition: all 0.5s ease-in-out;
-      }
-
-      /* Ajuste Mobile */
-      @media (max-width: 768px) {
-        .sidebar {
-          position: fixed;
-          bottom: 0;
-          width: 100%;
-          height: auto;
-          z-index: 50;
+      @keyframes pulse-purple {
+        0% {
+          box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7);
         }
-        /* Legendas maiores no mobile para facilitar leitura em telas pequenas */
-        .subtitle-overlay {
-          font-size: 1.5rem;
-          line-height: 1.2;
-          padding: 0 10px;
+        70% {
+          box-shadow: 0 0 0 15px rgba(168, 85, 247, 0);
         }
+        100% {
+          box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+        }
+      }
+      .live-indicator {
+        animation: pulse-purple 2s infinite;
+      }
+
+      iframe {
+        border: none;
+      }
+
+      .fullscreen-mode {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 100 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: black;
+      }
+
+      .cursor-grab {
+        cursor: grab;
+      }
+      .cursor-grabbing {
+        cursor: grabbing;
       }
     </style>
-    <script>
-      // Configuração do Tailwind para as cores do BTS
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              army: "#8A2BE2", // Roxo Army
-            },
-          },
-        },
-      };
-    </script>
   </head>
-  <body x-data="studioManager()" @click="resumeAudioContext()">
+  <body
+    x-data="studioManager()"
+    class="select-none overflow-hidden"
+    :class="isFull ? 'fullscreen-mode' : ''"
+  >
     <aside
       x-show="!isCapturing"
-      x-transition:leave="opacity-0 -translate-x-full"
-      class="ui-fade fixed left-0 top-0 w-full md:w-80 h-full bg-zinc-950/98 z-50 p-6 border-r border-purple-900/30 flex flex-col shadow-2xl"
+      class="fixed inset-0 bg-black z-[70] flex flex-col justify-center items-center p-6 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/30 via-black to-black"
     >
-      <div class="flex items-center gap-2 mb-8">
-        <div
-          class="w-8 h-8 bg-army rounded-sm flex items-center justify-center rotate-45"
-        >
-          <span class="text-white font-black -rotate-45 text-xs">K</span>
-        </div>
-        <h1
-          class="text-white font-black italic text-xl uppercase tracking-tighter"
-        >
-          K-Studio <span class="text-army">ARMY</span>
-        </h1>
-      </div>
-
-      <div class="space-y-6">
-        <div>
-          <label
-            class="text-[10px] uppercase font-bold text-zinc-500 tracking-widest"
-            >Link da Live (YouTube)</label
-          >
-          <input
-            x-model="liveUrl"
-            type="text"
-            class="w-full bg-zinc-900 border border-purple-900/50 rounded-xl p-4 text-sm mt-2 outline-none focus:border-army focus:ring-1 focus:ring-army transition-all placeholder-zinc-700"
-            placeholder="Cole o link aqui..."
-          />
-        </div>
-
-        <button
-          @click="toggleCapture"
-          class="w-full py-4 bg-gradient-to-r from-purple-700 to-army hover:from-purple-600 hover:to-purple-500 rounded-2xl font-bold uppercase shadow-lg shadow-purple-900/40 active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <span>Iniciar Transmissão</span>
+      <div class="w-full max-w-md text-center space-y-8">
+        <div class="space-y-2">
           <div
-            x-show="!wsConnected"
-            class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
-          ></div>
-        </button>
-
-        <p
-          class="text-[9px] text-zinc-500 text-center uppercase tracking-widest leading-relaxed"
-        >
-          Para gravar no iPhone: Use o microfone.<br />
-          No PC: Use "Guia do Chrome" para áudio limpo.
-        </p>
-      </div>
-
-      <div
-        class="mt-auto p-4 bg-purple-900/10 rounded-2xl border border-purple-900/20"
-      >
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase font-bold text-zinc-400"
-            >Status do Servidor</span
+            class="inline-block p-4 rounded-3xl bg-gradient-to-tr from-purple-600 to-fuchsia-500 mb-4 rotate-3 shadow-[0_0_40px_rgba(147,51,234,0.4)]"
           >
-          <div class="flex items-center gap-2">
-            <span
-              x-text="wsConnected ? 'ONLINE' : 'OFFLINE'"
-              class="text-[10px] font-bold"
-              :class="wsConnected ? 'text-green-500' : 'text-red-500'"
-            ></span>
-            <div
-              :class="wsConnected ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'"
-              class="w-2 h-2 rounded-full"
-            ></div>
+            <span class="font-sync font-bold text-4xl tracking-tighter"
+              >K-LENS</span
+            >
           </div>
+          <p
+            class="text-purple-400 font-bold tracking-[0.3em] text-[10px] uppercase"
+          >
+            Army Studio v2.0
+          </p>
+        </div>
+
+        <div
+          class="glass-purple p-8 rounded-[2.5rem] space-y-6 border-white/10"
+        >
+          <div class="text-left">
+            <label
+              class="text-[10px] font-black text-white/50 uppercase tracking-widest ml-2"
+              >Link da Live YouTube</label
+            >
+            <input
+              x-model="liveUrl"
+              type="text"
+              class="w-full bg-black/40 border border-purple-500/30 rounded-2xl p-4 mt-2 outline-none focus:border-purple-500 text-white transition-all placeholder:text-zinc-700"
+              placeholder="https://youtube.com/live/..."
+            />
+          </div>
+
+          <button
+            @click="toggleCapture"
+            class="w-full py-5 bg-white text-black rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-purple-500 hover:text-white active:scale-95 transition-all shadow-2xl"
+          >
+            Entrar no Estúdio
+          </button>
         </div>
       </div>
     </aside>
 
     <main
-      class="w-screen h-screen bg-black flex items-center justify-center relative overflow-hidden"
+      id="app-canvas"
+      class="w-screen h-screen relative bg-black flex items-center justify-center"
+      :class="isFull ? 'fixed inset-0 z-[100]' : ''"
     >
-      <div class="relative w-full h-full flex flex-col">
-        <template x-if="liveUrl">
+      <template x-if="isCapturing">
+        <div class="w-full h-full absolute inset-0">
           <iframe
-            class="w-full h-full object-cover"
+            class="w-full h-full"
             :src="getEmbedUrl(liveUrl)"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="autoplay; encrypted-media"
             allowfullscreen
           ></iframe>
-        </template>
-
-        <template x-if="!liveUrl">
-          <div
-            class="w-full h-full flex flex-col items-center justify-center text-zinc-800"
-          >
-            <p class="text-6xl font-black opacity-20">K-LIVE</p>
-            <p class="text-sm mt-2 opacity-40">Aguardando link...</p>
-          </div>
-        </template>
-
-        <div
-          class="absolute bottom-24 md:bottom-24 w-full px-4 md:px-16 text-center z-40 pointer-events-none"
-        >
-          <div
-            x-show="currentSubtitle"
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-4"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            class="subtitle-overlay text-2xl md:text-4xl lg:text-5xl leading-snug inline-block text-yellow-300"
-            x-text="currentSubtitle"
-          ></div>
         </div>
+      </template>
 
-        <button
-          x-show="isCapturing"
-          @click="stopRecording()"
-          class="absolute top-6 left-6 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full z-50 flex items-center justify-center text-white/50 hover:bg-red-500/80 hover:text-white transition-all shadow-lg"
-        >
-          ✕
-        </button>
-
-        <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-          <div
-            x-show="chatOpen"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 translate-y-10 scale-90"
-            class="bg-zinc-900/95 backdrop-blur-xl border border-purple-500/30 w-[85vw] md:w-80 mb-4 rounded-3xl overflow-hidden shadow-2xl shadow-purple-900/50"
+      <div 
+        x-show="isCapturing" 
+        class="fixed bottom-24 left-6 z-[60] flex flex-col gap-3 pointer-events-auto"
+      >
+          <button 
+            @click="sendManualClip('9:16')" 
+            class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center shadow-2xl active:scale-90 border-2 border-white/20"
           >
+            <span class="text-[10px] font-black">9:16</span>
+          </button>
+          <button 
+            @click="sendManualClip('16:9')" 
+            class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl active:scale-90 border-2 border-white/20"
+          >
+            <span class="text-[10px] font-black">16:9</span>
+          </button>
+      </div>
+
+      <div
+        x-show="isCapturing"
+        class="fixed z-40 touch-none flex flex-col items-center pointer-events-auto"
+        :style="`left: 50%; top: ${subPos.y}px; width: 100%; max-width: 95vw; transform: translateX(-50%);`"
+        @mousedown="startDragSub"
+        @touchstart="startDragSub"
+      >
+        <div
+          class="subtitle-overlay px-6 text-center cursor-grab active:cursor-grabbing"
+          :class="isDraggingSub ? 'opacity-50' : 'opacity-100'"
+        >
+          <span
+            class="transition-all duration-500"
+            :style="`font-size: ${fontSize}px; color: ${subTextColor};`"
+          >
+            <span
+              x-text="currentSubtitle || '📡 AGUARDANDO INTEGRAÇÃO...'"
+            ></span>
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="fixed z-50 touch-none"
+        :style="`left: ${chatPos.x}px; top: ${chatPos.y}px;`"
+        x-show="isCapturing"
+      >
+        <div
+          x-show="chatOpen"
+          x-transition:enter="transition ease-out duration-200"
+          x-transition:enter-start="opacity-0 scale-90 -translate-y-10"
+          class="glass-purple w-[85vw] max-w-[320px] absolute bottom-20 right-0 rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-white/20"
+        >
+          <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
             <div
-              class="bg-gradient-to-r from-purple-800 to-army p-4 text-xs font-bold flex justify-between items-center text-white"
+              class="flex justify-between items-center border-b border-white/10 pb-2"
             >
-              <span class="flex items-center gap-2"> 🇰🇷 TRADUTOR FÃ </span>
-              <button
-                @click="chatOpen = false"
-                class="hover:text-purple-200 p-2"
+              <span
+                class="text-[9px] font-black text-purple-300 tracking-widest uppercase"
+                >Ajustes do Studio</span
               >
+              <button @click="chatOpen = false" class="text-white/40 p-1">
                 ✕
               </button>
             </div>
 
-            <div class="p-4 space-y-3">
-              <textarea
-                x-model="userComment"
-                class="w-full bg-black/50 border border-zinc-700 rounded-xl p-3 text-sm text-white outline-none focus:border-army placeholder-zinc-600 resize-none"
-                rows="3"
-                placeholder="Escreva sua mensagem para o Idol..."
-              ></textarea>
-
-              <button
-                @click="translateComment"
-                class="w-full py-3 bg-white text-purple-900 hover:bg-zinc-200 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
-                :disabled="loadingTranslate || !userComment"
-                :class="{'opacity-50 cursor-not-allowed': loadingTranslate || !userComment}"
-              >
-                <span x-show="loadingTranslate" class="animate-spin">⏳</span>
-                <span
-                  x-text="loadingTranslate ? 'Processando...' : 'Traduzir p/ Coreano'"
-                ></span>
-              </button>
-
-              <div
-                x-show="translatedResult"
-                class="bg-purple-900/20 p-3 rounded-xl border border-purple-500/30 mt-2"
-              >
-                <p
-                  class="text-[10px] text-purple-300 mb-1 uppercase tracking-wider font-bold"
-                >
-                  Toque para copiar:
-                </p>
-                <p
-                  @click="copyResult"
-                  class="text-lg font-medium text-white cursor-pointer active:scale-95 transition-transform selection:bg-purple-500 break-words"
-                  x-text="translatedResult"
-                ></p>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="space-y-1">
+                <label class="text-[8px] font-bold uppercase text-white/50">Formato</label>
+                <select x-model="prodRatio" @change="updateProdConfig()" class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] outline-none">
+                  <option value="9:16">TikTok (9:16)</option>
+                  <option value="16:9">YouTube (16:9)</option>
+                </select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[8px] font-bold uppercase text-white/50">Tempo (s)</label>
+                <input type="number" x-model="prodDuration" @change="updateProdConfig()" class="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] outline-none" />
               </div>
             </div>
-          </div>
 
-          <button
-            @click="chatOpen = !chatOpen"
-            class="chat-bubble w-14 h-14 bg-gradient-to-br from-purple-600 to-army rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 active:scale-95 z-50"
-          >
-            <template x-if="!chatOpen">
-              <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                <path
-                  d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
-                />
-              </svg>
-            </template>
-            <span x-show="chatOpen" class="text-xl font-bold">✕</span>
-          </button>
+            <div class="space-y-1">
+              <div
+                class="flex justify-between text-[8px] font-bold uppercase text-white/50"
+              >
+                <span>Tamanho da Fonte</span>
+                <span x-text="fontSize + 'px'"></span>
+              </div>
+              <input
+                type="range"
+                min="16"
+                max="80"
+                x-model="fontSize"
+                class="w-full h-1 bg-purple-900 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              />
+            </div>
+
+            <textarea
+              x-model="userComment"
+              class="w-full bg-black/40 border border-white/5 rounded-2xl p-4 text-sm text-white outline-none focus:border-purple-500 resize-none h-24 transition-all"
+              placeholder="Sua mensagem em PT-BR..."
+            ></textarea>
+
+            <button
+              @click="translateComment"
+              class="w-full py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"
+              :disabled="loadingTranslate"
+            >
+              <span
+                x-text="loadingTranslate ? 'Traduzindo...' : 'Gerar em Coreano 🇰🇷'"
+              ></span>
+            </button>
+
+            <div
+              x-show="translatedResult"
+              x-cloak
+              @click="copyResult"
+              class="bg-white/10 p-4 rounded-2xl border border-white/10 cursor-pointer active:bg-white/20 transition-colors"
+            >
+              <p class="text-[8px] text-purple-300 font-bold uppercase mb-1">
+                Toque para copiar:
+              </p>
+              <p
+                class="text-base text-white font-medium leading-tight"
+                x-text="translatedResult"
+              ></p>
+            </div>
+          </div>
         </div>
+
+        <button
+          @mousedown="startDragChat"
+          @touchstart="startDragChat"
+          @click="if(!isDraggingChat) chatOpen = !chatOpen"
+          class="w-14 h-14 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center text-xl shadow-2xl live-indicator active:scale-90 transition-transform"
+        >
+          <span x-show="!chatOpen">🇰🇷</span>
+          <span x-show="chatOpen" class="text-[10px] font-black uppercase"
+            >Fechar</span
+          >
+        </button>
+      </div>
+
+      <div
+        x-show="isCapturing"
+        class="absolute top-6 left-6 right-6 flex justify-between items-center z-50 pointer-events-none"
+      >
+        <button
+          @click="window.location.reload()"
+          class="w-10 h-10 flex items-center justify-center glass-purple rounded-full text-white hover:bg-red-500 transition-all pointer-events-auto shadow-xl"
+        >
+          ✕
+        </button>
+
+        <button
+          @click="toggleFullscreen"
+          class="px-4 py-2 glass-purple rounded-full text-[10px] font-black text-white uppercase tracking-widest pointer-events-auto flex items-center gap-2 border-white/20 active:scale-95 transition-all shadow-xl"
+        >
+          <span x-text="isFull ? 'Sair' : 'Tela Cheia K-LENS'"></span>
+          <svg
+            x-show="!isFull"
+            class="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="3"
+              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+            ></path>
+          </svg>
+        </button>
       </div>
     </main>
 
@@ -278,156 +331,199 @@
           isCapturing: false,
           currentSubtitle: "",
           ws: null,
-          wsConnected: false,
-          audioCtx: null,
-
-          // Chat Reverso
           chatOpen: false,
           userComment: "",
           translatedResult: "",
           loadingTranslate: false,
+          isFull: false,
+          fontSize: 28,
+          subTextColor: "#ffffff",
+          
+          prodRatio: "9:16",
+          prodDuration: 61,
+
+          subPos: { y: window.innerHeight * 0.8 },
+          isDraggingSub: false,
+
+          chatPos: {
+            x: window.innerWidth - 80,
+            y: window.innerHeight - 100,
+          },
+          isDraggingChat: false,
+          dragOffset: { x: 0, y: 0 },
 
           init() {
             this.connectWS();
+            window.addEventListener("mousemove", (e) => this.onGlobalMove(e));
+            window.addEventListener("mouseup", () => this.endAllDrag());
+            window.addEventListener(
+              "touchmove",
+              (e) => this.onGlobalMove(e.touches[0]),
+              { passive: false }
+            );
+            window.addEventListener("touchend", () => this.endAllDrag());
+
+            window.addEventListener("resize", () => {
+              this.chatPos.x = window.innerWidth - 80;
+              this.chatPos.y = window.innerHeight - 100;
+            });
           },
 
-          async resumeAudioContext() {
-            // Essencial para Mobile: Destrava o áudio após o primeiro clique do usuário na tela
-            if (this.audioCtx && this.audioCtx.state === "suspended") {
-              await this.audioCtx.resume();
-              console.log("AudioContext retomado com sucesso.");
+          updateProdConfig() {
+            if (this.ws?.readyState === WebSocket.OPEN) {
+              this.ws.send(JSON.stringify({
+                action: "update_config",
+                ratio: this.prodRatio,
+                duration: parseInt(this.prodDuration),
+                live_url: this.liveUrl
+              }));
             }
           },
 
-          connectWS() {
-            const protocol =
-              window.location.protocol === "https:" ? "wss" : "ws";
-            this.ws = new WebSocket(
-              `${protocol}://${window.location.host}/ws/studio/1`
-            );
-            this.ws.binaryType = "arraybuffer";
+          sendManualClip(ratio) {
+            if (this.ws?.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify({
+                    type: "MANUAL_CLIP",
+                    ratio: ratio,
+                    url: this.liveUrl,
+                    label: "MANUAL_STUDIO"
+                }));
+                const oldText = this.currentSubtitle;
+                this.currentSubtitle = "🎬 SOLICITANDO CORTE " + ratio + "...";
+                setTimeout(() => { if(this.currentSubtitle.includes("SOLICITANDO")) this.currentSubtitle = oldText }, 3000);
+            }
+          },
 
-            this.ws.onopen = () => {
-              console.log("WS Conectado!");
-              this.wsConnected = true;
-            };
+          toggleFullscreen() {
+            const el = document.documentElement;
+            if (!this.isFull) {
+              if (el.requestFullscreen) el.requestFullscreen();
+              else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+              this.isFull = true;
+            } else {
+              if (document.exitFullscreen) document.exitFullscreen();
+              else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+              this.isFull = false;
+            }
+          },
 
-            this.ws.onclose = () => {
-              console.log("WS Desconectado, tentando reconectar...");
-              this.wsConnected = false;
-              setTimeout(() => this.connectWS(), 3000);
-            };
+          startDragSub(e) {
+            const clientY = e.clientY || e.touches[0].clientY;
+            this.dragOffset.y = clientY - this.subPos.y;
+            this.isDraggingSub = true;
+          },
 
-            this.ws.onmessage = (e) => {
-              try {
-                const data = JSON.parse(e.data);
-                if (data.text) {
-                  this.currentSubtitle = data.text;
-                  // Limpa a legenda após 5 segundos se não vier outra, para não poluir o mobile
-                  setTimeout(() => {
-                    if (this.currentSubtitle === data.text)
-                      this.currentSubtitle = "";
-                  }, 5000);
-                }
-              } catch (err) {
-                console.error("Erro parse legenda:", err);
-              }
-            };
+          startDragChat(e) {
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            this.dragOffset.x = clientX - this.chatPos.x;
+            this.dragOffset.y = clientY - this.chatPos.y;
+            this._tempDragChat = true;
+            this.isDraggingChat = false;
+          },
+
+          onGlobalMove(e) {
+            if (this.isDraggingSub) {
+              let newY = e.clientY - this.dragOffset.y;
+              this.subPos.y = Math.max(50, Math.min(window.innerHeight - 50, newY));
+            }
+
+            if (this._tempDragChat) {
+              this.isDraggingChat = true;
+              let newX = e.clientX - this.dragOffset.x;
+              let newY = e.clientY - this.dragOffset.y;
+              this.chatPos.x = Math.max(10, Math.min(window.innerWidth - 70, newX));
+              this.chatPos.y = Math.max(10, Math.min(window.innerHeight - 70, newY));
+            }
+          },
+
+          endAllDrag() {
+            this.isDraggingSub = false;
+            this._tempDragChat = false;
+            setTimeout(() => (this.isDraggingChat = false), 150);
           },
 
           getEmbedUrl(url) {
-            if (!url) return "";
-            if (url.includes("youtube.com") || url.includes("youtu.be")) {
-              let id = url.includes("v=")
-                ? url.split("v=")[1].split("&")[0]
-                : url.split("/").pop();
-              // Adicionado 'mute=1' opcional e 'enablejsapi=1' para melhor controle mobile
-              return `https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&enablejsapi=1`;
-            }
-            return url;
+            let id = "";
+            if (url.includes("v=")) id = url.split("v=")[1].split("&")[0];
+            else if (url.includes("live/")) id = url.split("live/")[1].split("?")[0];
+            else if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1].split("?")[0];
+            else id = url.split("/").pop();
+            return `https://www.youtube.com/embed/${id}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0`;
+          },
+
+          connectWS() {
+            const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+            this.ws = new WebSocket(`${protocol}://${window.location.host}/ws/studio/1`);
+
+            this.ws.onmessage = (e) => {
+              const data = JSON.parse(e.data);
+              if (data.type === "translation" && data.payload) {
+                this.currentSubtitle = data.payload;
+
+                if (data.payload.includes("!") || data.payload.includes("💜")) {
+                  this.subTextColor = "#f0abfc";
+                } else if (data.payload.includes("?")) {
+                  this.subTextColor = "#93c5fd";
+                } else {
+                  this.subTextColor = "#ffffff";
+                }
+
+                setTimeout(() => {
+                  if (this.currentSubtitle === data.payload)
+                    this.currentSubtitle = "";
+                }, 6000);
+              }
+            };
+            this.ws.onclose = () => setTimeout(() => this.connectWS(), 3000);
           },
 
           async toggleCapture() {
-            if (!this.liveUrl) return alert("Insira o link da live primeiro!");
-
+            if (!this.liveUrl) return alert("Insira o Link da Live!");
             try {
-              const isMobile = /iPhone|iPad|iPod|Android/i.test(
-                navigator.userAgent
-              );
-              let stream;
-
-              if (isMobile) {
-                // Captura otimizada para microfone mobile
-                stream = await navigator.mediaDevices.getUserMedia({
-                  audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                  },
-                });
-              } else {
-                stream = await navigator.mediaDevices.getDisplayMedia({
-                  audio: true,
-                  video: { width: 1, height: 1 },
-                });
-              }
-
+              await navigator.mediaDevices.getUserMedia({ audio: true });
               this.isCapturing = true;
-              this.startStreaming(stream);
+              setTimeout(() => {
+                this.updateProdConfig();
+                this.startAudioProcessing();
+              }, 1000);
             } catch (err) {
-              console.error(err);
-              alert(
-                "Erro: Certifique-se de dar permissão ao microfone e estar em uma conexão HTTPS."
-              );
+              alert("Erro ao acessar microfone.");
             }
           },
 
-          startStreaming(stream) {
-            // Configuração para o Chirp v2 (16kHz Mono)
-            this.audioCtx = new (window.AudioContext ||
-              window.webkitAudioContext)({ sampleRate: 16000 });
-            const source = this.audioCtx.createMediaStreamSource(stream);
-
-            // ScriptProcessor ainda é o mais compatível para manipulação de bytes crus (PCM)
-            const processor = this.audioCtx.createScriptProcessor(4096, 1, 1);
-
+          async startAudioProcessing() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            const source = audioCtx.createMediaStreamSource(stream);
+            const processor = audioCtx.createScriptProcessor(4096, 1, 1);
             source.connect(processor);
-            processor.connect(this.audioCtx.destination);
-
+            processor.connect(audioCtx.destination);
             processor.onaudioprocess = (e) => {
               if (!this.isCapturing) return;
-
               const input = e.inputBuffer.getChannelData(0);
               const pcm = new Int16Array(input.length);
-
               for (let i = 0; i < input.length; i++) {
                 pcm[i] = Math.max(-1, Math.min(1, input[i])) * 0x7fff;
               }
-
-              if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+              if (this.ws?.readyState === WebSocket.OPEN)
                 this.ws.send(pcm.buffer);
-              }
             };
           },
 
           async translateComment() {
             if (!this.userComment) return;
             this.loadingTranslate = true;
-
             try {
               const res = await fetch("/api/translate-reverse", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text: this.userComment }),
               });
-
-              if (!res.ok) throw new Error("Erro na API");
-
               const data = await res.json();
-              this.translatedResult = data.korean;
+              this.translatedResult = data.korean || "Erro";
             } catch (e) {
-              console.error(e);
-              this.translatedResult = "Erro ao traduzir. Tente novamente.";
+              this.translatedResult = "Erro";
             } finally {
               this.loadingTranslate = false;
             }
@@ -435,28 +531,10 @@
 
           copyResult() {
             if (!this.translatedResult) return;
-
-            // Método robusto de cópia para mobile
-            const textArea = document.createElement("textarea");
-            textArea.value = this.translatedResult;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-              document.execCommand("copy");
-              const original = this.translatedResult;
-              this.translatedResult = "COPIADO! 💜";
-              setTimeout(() => (this.translatedResult = original), 1500);
-            } catch (err) {
-              console.error("Erro ao copiar", err);
-            }
-            document.body.removeChild(textArea);
-          },
-
-          stopRecording() {
-            this.isCapturing = false;
-            this.currentSubtitle = "";
-            if (this.audioCtx) this.audioCtx.close();
-            window.location.reload();
+            navigator.clipboard.writeText(this.translatedResult);
+            const ori = this.translatedResult;
+            this.translatedResult = "COPIADO! 💜";
+            setTimeout(() => (this.translatedResult = ori), 1200);
           },
         };
       }

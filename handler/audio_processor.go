@@ -1,94 +1,89 @@
 package handler
 
 import (
-	"context"
-	"kpop-backend/db"
-	"kpop-backend/hub"
-	"kpop-backend/models"
-	"kpop-backend/translate"
-	"log"
-	"sync"
-	"time"
+	"math"
 )
 
+// AudioProcessor lida com a análise primária do sinal para economizar API
 type AudioProcessor struct {
-	GeminiSvc *translate.GeminiService
-	Hub       *hub.Hub
-	mu        sync.Mutex
+	Threshold float64 // Limite de volume (RMS)
+	ZCRLimit  float64 // Limite de Zero-Crossing Rate para diferenciar voz de música/ruído
 }
 
-func NewAudioProcessor(g *translate.GeminiService, h *hub.Hub) *AudioProcessor {
+func NewAudioProcessor(threshold float64) *AudioProcessor {
 	return &AudioProcessor{
-		GeminiSvc: g,
-		Hub:       h,
+		Threshold: threshold,
+		ZCRLimit:  0.15, // Valor base para voz humana em PCM16
 	}
 }
 
-// ProcessAudioChunk orquestra o fluxo: VAD -> Chirp v2 (STT) -> Gemini (Tradução) -> DB/Web
-func (ap *AudioProcessor) ProcessAudioChunk(ctx context.Context, liveID uint, audioData []byte) {
-	// 1. LÓGICA DE PERCEPÇÃO (VAD Local)
-	if !isSpeech(audioData) {
-		return
+// IsSilent analisa se o buffer está abaixo do volume aceitável (VAD)
+func (ap *AudioProcessor) IsSilent(audioData []byte) bool {
+	if len(audioData) == 0 {
+		return true
 	}
 
-	// 2. TRANSCRIÇÃO (Placeholder para Google Chirp v2)
-	// O Chirp v2 processará o áudio coreano aqui.
-	rawText := "Texto capturado pelo Chirp v2"
-
-	// 3. REFINAMENTO CONTEXTUAL (Gemini 2.0 Flash)
-	// Usa a lógica que definimos para tradução não-estática.
-	refined, err := ap.GeminiSvc.RefinarETraduzir(ctx, rawText)
-	if err != nil {
-		log.Printf("Erro no refinamento Gemini: %v", err)
-		return
-	}
-
-	// 4. PERSISTÊNCIA E DISTRIBUIÇÃO
-	timestamp := time.Now().UnixMilli()
-
-	// Salva no Banco para o "Netflix de Lives"
-	captionLog := models.CaptionLog{
-		LiveArchiveID: liveID,
-		Timestamp:     timestamp,
-		OriginalText:  refined.Original,
-		RefinedText:   refined.Traducao,
-	}
-	db.DB.Create(&captionLog)
-
-	// Envia via WebSocket para o Web App (Mobile Friendly)
-	ap.Hub.Broadcast <- hub.SubtitleMessage{
-		LiveID:    liveID,
-		Text:      refined.Traducao,
-		Timestamp: timestamp,
-		IsFinal:   true,
-	}
-}
-
-// StartMockSubtitles - Útil para testar o layout roxo no celular sem áudio real
-func (ap *AudioProcessor) StartMockSubtitles(liveID uint) {
-	frases := []string{
-		"Olá ARMYs! 💜",
-		"O Chirp v2 está ouvindo...",
-		"Gemini 2.0 traduzindo em tempo real...",
-		"Este é o layout mobile-friendly!",
-		"Saranghae! (Eu amo vocês)",
-	}
-
-	i := 0
-	for {
-		time.Sleep(4 * time.Second)
-		msg := hub.SubtitleMessage{
-			LiveID:    liveID,
-			Text:      frases[i%len(frases)],
-			Timestamp: time.Now().UnixMilli(),
-			IsFinal:   true,
+	var sum float64
+	samples := 0
+	for i := 0; i < len(audioData); i += 2 {
+		if i+1 < len(audioData) {
+			sample := int16(audioData[i]) | int16(audioData[i+1])<<8
+			sum += float64(sample) * float64(sample)
+			samples++
 		}
-		ap.Hub.Broadcast <- msg
-		i++
 	}
+
+	rms := math.Sqrt(sum / float64(samples))
+	return rms < ap.Threshold
 }
 
-func isSpeech(data []byte) bool {
-	// Filtro simples de silêncio/tamanho de pacote
-	return len(data) > 500
+// IsMusic detecta se o áudio é música/bateria ou apenas ruído rítmico.
+// Usa Zero-Crossing Rate (ZCR) para identificar a complexidade do sinal.
+func (ap *AudioProcessor) IsMusic(audioData []byte) bool {
+	if len(audioData) < 2 {
+		return false
+	}
+
+	crossings := 0
+	samples := 0
+	var lastSample int16
+
+	for i := 0; i < len(audioData); i += 2 {
+		if i+1 < len(audioData) {
+			sample := int16(audioData[i]) | int16(audioData[i+1])<<8
+
+			// Detecta quando a onda cruza o eixo zero (ZCR)
+			if (sample > 0 && lastSample < 0) || (sample < 0 && lastSample > 0) {
+				crossings++
+			}
+			lastSample = sample
+			samples++
+		}
+	}
+
+	zcr := float64(crossings) / float64(samples)
+
+	// Música e bateria tendem a ter ZCR muito alto ou muito constante.
+	// Voz humana é irregular e fica geralmente entre 0.05 e 0.20.
+	// Se for muito alto (> 0.4), geralmente é prato de bateria ou ruído branco (estática).
+	if zcr > 0.4 {
+		return true
+	}
+
+	return false
+}
+
+// ShouldProcess decide se o pacote de áudio merece ser enviado para a IA
+func (ap *AudioProcessor) ShouldProcess(audioData []byte) bool {
+	// Se estiver em silêncio OU for detectado como ruído/música excessiva, ignora.
+	if ap.IsSilent(audioData) {
+		return false
+	}
+
+	// Se o ZCR indicar que é apenas batida (bateria) sem voz clara, ignora.
+	if ap.IsMusic(audioData) {
+		return false
+	}
+
+	return true
 }

@@ -1,49 +1,37 @@
 package hub
 
 import (
-	"encoding/json"
-	"log"
 	"sync"
-	"time"
-
-	"github.com/gorilla/websocket"
 )
 
-const (
-	writeWait      = 10 * time.Second
-	pongWait       = 60 * time.Second
-	pingPeriod     = (pongWait * 9) / 10
-	maxMessageSize = 512 * 1024 // 512KB para aguentar chunks de áudio
-)
-
-type SubtitleMessage struct {
-	LiveID    uint   `json:"live_id"`
-	Text      string `json:"text"`
-	Timestamp int64  `json:"timestamp"`
-	IsFinal   bool   `json:"is_final"`
+// Message define a estrutura de dados que viaja via WebSocket
+type Message struct {
+	Type    string      `json:"type"` // "translation", "ad", "system", "vip_alert"
+	Payload interface{} `json:"payload"`
+	LiveID  string      `json:"live_id,omitempty"` // Identificador da live para o "tubo" correto
 }
 
-type Client struct {
-	Hub    *Hub
-	Conn   *websocket.Conn
-	Send   chan []byte
-	LiveID uint
-}
-
+// Hub mantém o conjunto de clientes ativos e faz o broadcast das mensagens
 type Hub struct {
-	Rooms      map[uint]map[*Client]bool
-	Broadcast  chan SubtitleMessage
-	Register   chan *Client
-	Unregister chan *Client
-	mu         sync.Mutex
+	// Clientes conectados: o canal de mensagens é a chave
+	Clients map[chan Message]bool
+
+	// Mensagens que chegam para serem enviadas a todos
+	Broadcast chan Message
+
+	// Canais para registrar e remover clientes (thread-safe)
+	Register   chan chan Message
+	Unregister chan chan Message
+
+	mu sync.Mutex
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		Rooms:      make(map[uint]map[*Client]bool),
-		Broadcast:  make(chan SubtitleMessage),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
+		Broadcast:  make(chan Message),
+		Register:   make(chan chan Message),
+		Unregister: make(chan chan Message),
+		Clients:    make(map[chan Message]bool),
 	}
 }
 
@@ -52,71 +40,30 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.mu.Lock()
-			if h.Rooms[client.LiveID] == nil {
-				h.Rooms[client.LiveID] = make(map[*Client]bool)
-			}
-			h.Rooms[client.LiveID][client] = true
+			h.Clients[client] = true
 			h.mu.Unlock()
-			log.Printf("Live %d: Novo espectador conectado.", client.LiveID)
 
 		case client := <-h.Unregister:
 			h.mu.Lock()
-			if _, ok := h.Rooms[client.LiveID][client]; ok {
-				delete(h.Rooms[client.LiveID], client)
-				close(client.Send)
-				if len(h.Rooms[client.LiveID]) == 0 {
-					delete(h.Rooms, client.LiveID)
-				}
+			if _, ok := h.Clients[client]; ok {
+				delete(h.Clients, client)
+				close(client)
 			}
 			h.mu.Unlock()
 
-		case msg := <-h.Broadcast:
+		case message := <-h.Broadcast:
 			h.mu.Lock()
-			clients := h.Rooms[msg.LiveID]
-			payload, _ := json.Marshal(msg)
-			for client := range clients {
+			for client := range h.Clients {
 				select {
-				case client.Send <- payload:
+				case client <- message:
+					// Mensagem enviada com sucesso
 				default:
-					close(client.Send)
-					delete(h.Rooms[msg.LiveID], client)
+					// Se o buffer do cliente estiver cheio, desconecta para não travar o hub
+					close(client)
+					delete(h.Clients, client)
 				}
 			}
 			h.mu.Unlock()
-		}
-	}
-}
-
-// WritePump envia mensagens do Hub para o navegador (Legendas e Pings)
-func (c *Client) WritePump() {
-	ticker := time.NewTicker(pingPeriod)
-	defer func() {
-		ticker.Stop()
-		c.Conn.Close()
-	}()
-	for {
-		select {
-		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
-
-			if err := w.Close(); err != nil {
-				return
-			}
-		case <-ticker.C:
-			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
-			}
 		}
 	}
 }
