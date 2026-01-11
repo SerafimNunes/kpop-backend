@@ -7,13 +7,13 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "tmp\\main.exe"
-  cmd = "go build -o ./tmp/main.exe ."
-  delay = 1000
+  cmd = "go build -ldflags='-s -w' -o ./tmp/main.exe ."
+  delay = 2000
   entrypoint = ["tmp\\main.exe"]
-  exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules"]
   exclude_file = []
-  exclude_regex = ["_test.go"]
-  exclude_unchanged = false
+  exclude_regex = ["_test.go", ".*_mock\\.go$"]
+  exclude_unchanged = true
   follow_symlink = false
   full_bin = ""
   include_dir = []

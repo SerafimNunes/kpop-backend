@@ -1,0 +1,179 @@
+<div class="space-y-6 animate-fade-in" x-data="intelligenceEngine()">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+      <h2 class="text-3xl font-black text-white tracking-tighter uppercase">
+        Insight Engine
+      </h2>
+      <p class="text-zinc-500 font-mono text-[10px] uppercase tracking-widest">
+        Análise de Conhecimento Multimodal & Auditoria Normativa
+      </p>
+    </div>
+    <div class="flex gap-4 items-center bg-zinc-900/50 p-3 rounded-xl border border-white/5">
+      <div class="text-right">
+        <p class="text-[9px] text-zinc-500 font-bold uppercase">Consumo de Contexto</p>
+        <div class="w-32 h-1.5 bg-zinc-800 rounded-full mt-1 overflow-hidden">
+          <div class="bg-blue-500 h-full transition-all duration-1000" :style="`width: ${tokenUsage}%`"></div>
+        </div>
+      </div>
+      <span class="px-3 py-1 bg-green-900/20 text-green-500 text-[10px] font-black rounded-full border border-green-500/20 shadow-sm">
+        MEMÓRIA ATIVA
+      </span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    <div class="lg:col-span-3 bg-[#0d1117] border border-[#30363d] p-1.5 rounded-xl flex gap-2 items-center shadow-xl">
+      <div class="pl-3 text-zinc-500">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.826a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <input
+        type="text"
+        x-model="sourceUrl"
+        placeholder="Cole Link do YouTube, Artigo Técnico ou Lei para análise imediata..."
+        class="flex-1 bg-transparent border-none px-2 py-3 text-white focus:outline-none text-sm placeholder:text-zinc-600"
+      />
+      <label class="cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors text-zinc-400" title="Upload de PDF/DOCX">
+        <input type="file" class="hidden" @change="handleFileUpload" />
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </label>
+      <button
+        @click="processSource()"
+        :disabled="loading || !sourceUrl"
+        class="bg-green-600 hover:bg-green-500 disabled:opacity-30 text-white px-8 py-3 rounded-lg font-black text-xs transition-all shadow-lg shadow-green-900/20 uppercase tracking-widest"
+      >
+        <span x-show="!loading">Analisar</span>
+        <span x-show="loading" class="flex items-center gap-2">
+          <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          Processando
+        </span>
+      </button>
+    </div>
+
+    <div class="bg-amber-500/5 border border-amber-500/10 p-4 rounded-xl flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15c-.77 1.333.192 3 1.732 3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <p class="text-[9px] text-amber-200/60 leading-tight font-mono uppercase">
+        <strong>Filtro de Escopo:</strong><br />Processamento restrito a Engenharia, Legislação e ESG.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1 space-y-4">
+      <div class="aspect-video bg-black rounded-xl border border-[#30363d] overflow-hidden relative shadow-2xl">
+        <template x-if="isVideo(sourceUrl)">
+          <iframe id="miniPlayer" class="w-full h-full" :src="getEmbedUrl(sourceUrl)" allowfullscreen border="0"></iframe>
+        </template>
+        <template x-if="!isVideo(sourceUrl)">
+          <div class="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-zinc-900/30">
+            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 border border-white/5">
+              <svg class="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <p class="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">Aguardando Mídia Técnica</p>
+          </div>
+        </template>
+      </div>
+
+      <div class="bg-[#0d1117] border border-[#30363d] rounded-xl flex flex-col h-[400px] shadow-lg">
+        <div class="p-3 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
+          <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Chat com Especialista IA</span>
+          <span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs scrollbar-hide" id="chatContainer">
+          <template x-for="msg in chatHistory">
+            <div :class="msg.role === 'user' ? 'text-right' : 'text-left'">
+              <div :class="msg.role === 'user' ? 'bg-blue-600 inline-block p-3 rounded-2xl rounded-tr-none text-white max-w-[85%]' : 'bg-zinc-800 inline-block p-3 rounded-2xl rounded-tl-none text-zinc-300 max-w-[85%]'" x-text="msg.content"></div>
+            </div>
+          </template>
+        </div>
+        <div class="p-3 border-t border-white/5 bg-black/20">
+          <input
+            @keydown.enter="sendChatMessage()"
+            x-model="chatInput"
+            type="text"
+            placeholder="Pergunte sobre a norma ou documento..."
+            class="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-all"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="bg-[#0d1117] border border-[#30363d] rounded-xl p-8 min-h-[820px] shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-600 via-blue-500 to-indigo-600"></div>
+
+        <div class="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-blue-500/10 rounded-xl border border-blue-500/20 text-blue-500">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white tracking-tight">Intelligence Report</h3>
+              <p class="text-[9px] text-zinc-500 font-mono uppercase tracking-widest">Auren Engine V1.0 - Análise Técnica</p>
+            </div>
+          </div>
+          <button class="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-all" title="Exportar para PDF">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-8" x-show="insightData">
+          <section class="animate-fade-in">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-1.5 h-4 bg-green-500 rounded-full"></span>
+              <h4 class="text-green-400 text-[10px] font-black uppercase tracking-[0.2em]">Resumo Executivo</h4>
+            </div>
+            <div class="bg-white/[0.02] border border-white/5 p-5 rounded-2xl">
+              <p class="text-zinc-300 text-sm leading-relaxed whitespace-pre-line" x-text="insightData.summary"></p>
+            </div>
+          </section>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-blue-500/5 p-5 rounded-2xl border border-blue-500/10">
+              <h4 class="text-blue-400 text-[10px] font-black uppercase mb-3 tracking-widest">Impacto no PGRS</h4>
+              <p class="text-zinc-400 text-xs leading-relaxed" x-text="insightData.pgrsImpact"></p>
+            </div>
+            <div class="bg-purple-500/5 p-5 rounded-2xl border border-purple-500/10">
+              <h4 class="text-purple-400 text-[10px] font-black uppercase mb-3 tracking-widest">Base Legal Citada</h4>
+              <p class="text-zinc-400 text-xs leading-relaxed" x-text="insightData.legalBase"></p>
+            </div>
+          </div>
+
+          <section class="bg-gradient-to-br from-zinc-900 to-black p-6 rounded-2xl border border-green-500/20 shadow-inner">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-500 shadow-lg shadow-green-500/10">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h4 class="text-white text-sm font-bold tracking-tight">Oportunidade de Business Intelligence</h4>
+            </div>
+            <p class="text-zinc-400 text-sm italic font-serif leading-relaxed" x-text="insightData.opportunity"></p>
+          </section>
+        </div>
+
+        <div x-show="!insightData && !loading" class="flex flex-col items-center justify-center h-[500px] text-zinc-700">
+          <div class="mb-6 opacity-10">
+             <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+             </svg>
+          </div>
+          <p class="text-xs font-mono uppercase tracking-[0.3em] animate-pulse">Aguardando Input do Motor</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,305 @@
+<div class="grid grid-cols-12 gap-10">
+  <div class="col-span-12 lg:col-span-7 space-y-8">
+    <div>
+      <h2 class="text-2xl font-bold italic tracking-tighter text-white">
+        Software Elaboração PGRS
+        <span class="text-emerald-500 text-sm">v2.0</span>
+      </h2>
+      <p class="text-zinc-500 text-xs font-medium">
+        Conformidade Estrita: Lei 12.305/10 (PNRS) & NBR 10.004.
+      </p>
+    </div>
+
+    <div class="space-y-6">
+      <div class="glass-panel p-6 rounded-2xl border-l-4 border-emerald-500">
+        <h4
+          class="text-xs font-bold text-emerald-500 uppercase mb-4 tracking-widest"
+        >
+          1. Identificação do Gerador
+        </h4>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2 space-y-1">
+            <label class="text-[10px] text-zinc-500 uppercase font-bold"
+              >Razão Social</label
+            >
+            <input
+              type="text"
+              x-model="pgrsData.razao"
+              class="input-field"
+              placeholder="Ex: Indústria de Plásticos Eco LTDA"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] text-zinc-500 uppercase font-bold"
+              >CNPJ</label
+            >
+            <input
+              type="text"
+              x-model="pgrsData.cnpj"
+              class="input-field"
+              placeholder="00.000.000/0001-00"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] text-zinc-500 uppercase font-bold"
+              >Atividade (CNAE)</label
+            >
+            <input
+              type="text"
+              x-model="pgrsData.cnae"
+              class="input-field"
+              placeholder="Ex: 38.31-9-01"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel p-6 rounded-2xl border-l-4 border-amber-500">
+        <div class="flex justify-between items-center mb-4">
+          <h4
+            class="text-xs font-bold text-amber-500 uppercase tracking-widest"
+          >
+            2. Inventário de Resíduos (NBR 10.004)
+          </h4>
+          <button
+            @click="pgrsData.inventory.push({nome: '', classe: '', codigo: '', quantidade: '', destino: ''})"
+            class="text-[10px] bg-amber-500/20 text-amber-500 px-2 py-1 rounded border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all"
+          >
+            + ADICIONAR RESÍDUO
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <template x-for="(item, index) in pgrsData.inventory" :key="index">
+            <div
+              class="grid grid-cols-12 gap-2 p-3 bg-black/40 rounded-lg border border-white/5 relative group"
+            >
+              <div class="col-span-4 space-y-1">
+                <label class="text-[8px] text-zinc-500 uppercase"
+                  >Resíduo</label
+                >
+                <input
+                  type="text"
+                  x-model="item.nome"
+                  class="input-field text-xs py-1"
+                  placeholder="Ex: Óleo Usado"
+                />
+              </div>
+              <div class="col-span-2 space-y-1">
+                <label class="text-[8px] text-zinc-500 uppercase">Classe</label>
+                <select x-model="item.classe" class="input-field text-xs py-1">
+                  <option value="">Selecione</option>
+                  <option value="I">Classe I (Perigoso)</option>
+                  <option value="IIA">Classe II-A</option>
+                  <option value="IIB">Classe II-B</option>
+                </select>
+              </div>
+              <div class="col-span-3 space-y-1">
+                <label class="text-[8px] text-zinc-500 uppercase"
+                  >Destinação Final</label
+                >
+                <input
+                  type="text"
+                  x-model="item.destino"
+                  class="input-field text-xs py-1"
+                  placeholder="Ex: Rerrefino"
+                />
+              </div>
+              <div class="col-span-2 space-y-1">
+                <label class="text-[8px] text-zinc-500 uppercase"
+                  >Qtd/Mês</label
+                >
+                <input
+                  type="text"
+                  x-model="item.quantidade"
+                  class="input-field text-xs py-1"
+                  placeholder="Ex: 500L"
+                />
+              </div>
+              <div class="col-span-1 flex items-end pb-1">
+                <button
+                  @click="pgrsData.inventory.splice(index, 1)"
+                  class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 18L18 6M6 6l12 12"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="glass-panel p-6 rounded-2xl border-l-4 border-blue-500">
+        <h4
+          class="text-xs font-bold text-blue-500 uppercase mb-4 tracking-widest"
+        >
+          3. Responsabilidade Técnica
+        </h4>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-[10px] text-zinc-500 uppercase font-bold"
+              >Nome do Profissional</label
+            >
+            <input
+              type="text"
+              x-model="pgrsData.responsavel"
+              class="input-field"
+              placeholder="Ex: Eng. Katriane Caconso"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] text-zinc-500 uppercase font-bold"
+              >Registro (CREA/CRBio)</label
+            >
+            <input
+              type="text"
+              x-model="pgrsData.registro"
+              class="input-field"
+              placeholder="123456/D-PR"
+            />
+          </div>
+        </div>
+      </div>
+
+      <button
+        @click="generating = true; setTimeout(() => generating = false, 2500)"
+        class="w-full py-4 bg-[#238636] rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-[#2ea043] shadow-lg shadow-emerald-900/20"
+      >
+        <span x-show="!generating">Gerar Laudo Consolidado IA</span>
+        <span
+          x-show="generating"
+          class="flex items-center justify-center gap-2"
+        >
+          <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Auditando Dados e Legislação...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="hidden lg:col-span-5 lg:block relative">
+    <div
+      class="sticky top-0 p-8 bg-white text-slate-900 rounded shadow-2xl min-h-[700px] border border-slate-200 transform scale-95 origin-top transition-all font-serif"
+    >
+      <div
+        class="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-6"
+      >
+        <div>
+          <h1 class="text-[14px] font-black uppercase tracking-tighter">
+            PGRS - Laudo Técnico
+          </h1>
+          <p class="text-[8px] text-slate-500 font-bold">
+            MEMORIAL DESCRITIVO DE GERENCIAMENTO
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-[8px] font-mono font-bold italic">
+            Ref. Técnica: <span x-text="pgrsData.cnpj || '#PENDENTE'"></span>
+          </p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <section>
+          <h5 class="text-[10px] font-bold uppercase underline mb-2">
+            1. OBJETO
+          </h5>
+          <p class="text-[10px] leading-relaxed text-justify">
+            Este documento estabelece as diretrizes de manejo para a empresa
+            <span
+              class="font-bold"
+              x-text="pgrsData.razao || '[RAZÃO SOCIAL]'"
+            ></span
+            >, visando a minimização da geração na fonte e a destinação final
+            ambientalmente adequada.
+          </p>
+        </section>
+
+        <section>
+          <h5 class="text-[10px] font-bold uppercase underline mb-2">
+            2. QUADRO RESUMO DE RESÍDUOS
+          </h5>
+          <table
+            class="w-full text-[8px] border-collapse border border-slate-300"
+          >
+            <thead>
+              <tr class="bg-slate-100">
+                <th class="border border-slate-300 p-1">Resíduo</th>
+                <th class="border border-slate-300 p-1">Classe</th>
+                <th class="border border-slate-300 p-1">Destinação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="item in pgrsData.inventory">
+                <tr>
+                  <td
+                    class="border border-slate-300 p-1"
+                    x-text="item.nome || '-'"
+                  ></td>
+                  <td
+                    class="border border-slate-300 p-1 text-center"
+                    x-text="item.classe || '-'"
+                  ></td>
+                  <td
+                    class="border border-slate-300 p-1"
+                    x-text="item.destino || '-'"
+                  ></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="pt-4">
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1"
+          >
+            Responsável Técnico:
+          </p>
+          <p
+            class="text-[11px] font-mono font-bold text-emerald-800 uppercase"
+            x-text="pgrsData.responsavel || 'AGUARDANDO...'"
+          ></p>
+          <p
+            class="text-[9px] font-mono text-slate-500"
+            x-text="pgrsData.registro"
+          ></p>
+        </section>
+
+        <div
+          class="mt-20 pt-4 border-t border-slate-200 flex justify-between items-center opacity-40"
+        >
+          <div class="text-[7px]">
+            Certificado Digital Auren Core #<span x-text="Date.now()"></span>
+          </div>
+          <div class="text-[7px] font-bold">v1.0.5 Compliance</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,54 @@
+[x-cloak] {
+  display: none !important;
+}
+body {
+  background: #010409;
+  color: #f8fafc;
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+.glass-panel {
+  background: rgba(13, 17, 23, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(48, 54, 61, 1);
+}
+.sidebar-btn {
+  transition: all 0.2s;
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+}
+.sidebar-btn.active {
+  background: rgba(35, 134, 54, 0.1);
+  color: #2ea043;
+  border-left: 3px solid #2ea043;
+}
+.input-field {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  color: white;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.input-field:focus {
+  border-color: #2ea043;
+  outline: none;
+}
+.stat-card {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 20px;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 10px;
+}
