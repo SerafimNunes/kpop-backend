@@ -7,9 +7,6 @@ bin/
 .env
 .env.*
 
-# Node / Expo
-kpop-app/node_modules/
-kpop-app/.expo/
 
 # OS
 .DS_Store
@@ -19,3 +16,8 @@ recordings/
 
 # Google Cloud
 google-creds.json
+
+.env
+google-creds.json
+tmp/
+storage/

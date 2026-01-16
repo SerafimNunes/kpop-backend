@@ -1,0 +1,100 @@
+Este é o documento mestre consolidado. Ele une a visão estratégica de negócio, a arquitetura técnica simplificada em Go e o novo organograma de agentes especialistas. Este documento deve servir como a "única fonte de verdade" para o desenvolvimento da **Auren Platform**.
+
+
+# 📜 Manifesto de Arquitetura e Negócio: Auren Platform
+
+**Versão:** 1.3 (Consolidada)
+
+**Data:** 16 de Janeiro de 2026
+
+**Status:** Definição Estrutural de Grande Magnitude
+
+**Propósito:** Transformar a Auren Consultoria em uma plataforma de inteligência ambiental escalável, unindo gestão de negócios (Front-Office) e excelência técnica (Back-Office) via IA.
+
+---
+
+## 1. Visão Geral da Solução
+
+A plataforma opera como um ecossistema modular dividido em três núcleos de inteligência que se comunicam através de uma API REST unificada em Go, utilizando uma hierarquia de Agentes de IA especialistas (Funcionários Digitais).
+
+### 1.1 Módulo de Gestão (Front-Office)
+
+* **Foco:** Rentabilidade, expansão comercial e blindagem administrativa.
+* **Recursos:** CRM Ambiental, Gestão de Contratos, Catálogo de Serviços e BI.
+
+### 1.2 Módulo Técnico (Back-Office)
+
+* **Foco:** Rigor técnico, vistorias de campo e conformidade legal.
+* **Recursos:** Workplace de Engenharia, Coleta de Evidências Multimídia e Geração de Laudos.
+
+### 1.3 Módulo de Pesquisa e Biblioteca (Cérebro)
+
+* **Foco:** Memória corporativa, suporte à decisão e monitoramento legislativo.
+* **Recursos:** Chat RAG (baseado em documentos internos) e Consultor de Leis em tempo real.
+
+---
+
+## 2. Organograma de Agentes Especialistas (Funcionários Digitais)
+
+Cada agente é um arquivo isolado com instruções (prompts) específicas para evitar alucinações e garantir especialização.
+
+### 2.1 Departamento Administrativo e Comercial (`/agents/admin`)
+
+* **Agente de Inteligência de Mercado (Hunter):** Identifica leads e monitora autuações de potenciais clientes.
+* **Analista de Compliance Contratual:** Analisa riscos em contratos e garante segurança jurídica (ex: Padrão Vale S.A).
+* **Gestor de Propostas Estratégicas:** Calcula viabilidade econômica, margens e redige propostas comerciais.
+* **Controller Financeiro e Tributário:** Monitora fluxo de caixa, impostos de serviços e alertas de inadimplência.
+* **Agente de Customer Success (Pós-Venda):** Identifica oportunidades de *upsell* e monitora satisfação.
+
+### 2.2 Departamento de Engenharia e Operações (`/agents/engineering`)
+
+* **Especialista em Classificação de Resíduos (PNRS):** Mestre em normas de resíduos (Classe I a IIB) e CONAMA.
+* **Auditor de Campo Digital:** Analisa fotos/vídeos de vistorias buscando riscos invisíveis e falhas de segurança.
+* **Engenheiro Redator de Laudos:** Transforma dados brutos em texto técnico formal (PGRS, RCA, PCA).
+* **Agente de Monitoramento de Condicionantes:** Vigia obrigações de licenças ambientais e cobra prazos técnicos.
+* **Analista de Riscos e Emergências:** Simula cenários de acidentes e sugere planos de contingência (PGR).
+
+### 2.3 Departamento de Inteligência e Pesquisa (`/agents/library`)
+
+* **Curador de Jurisprudência Ambiental:** Pesquisa decisões judiciais para dar suporte a teses técnicas.
+* **Bibliotecário de Ativos Próprios:** Recupera conhecimento de projetos antigos para acelerar os novos.
+* **Agente de Monitoramento Legislativo (Radar):** Filtra Diários Oficiais em busca de novas leis que afetem os clientes.
+
+---
+
+## 3. Arquitetura Técnica (Simplificada)
+
+### 3.1 Backend (Go + API REST)
+
+* **Padrão:** *Semantic Dispatcher* (Um endpoint único `POST /api/execute`).
+* **Motores de Execução:**
+* `ManagementEngine`: Gerencia chamadas para `/agents/admin`.
+* `TechnicalEngine`: Gerencia chamadas para `/agents/engineering`.
+* `ResearchEngine`: Gerencia chamadas para `/agents/library`.
+
+
+
+### 3.2 Frontend (Alpine.js + HTML5)
+
+* **Comunicação:** Função global `aurenExecute(module, action, payload)`.
+* **Interfaces:** `dashboard.html`, `comercial.html`, `vistoria.html`, `intelligence.html`, `pesquisa.html`.
+
+---
+
+## 4. Escopo do MVP (O Primeiro Passo)
+
+1. **Serviço de PGRS:** Elaboração completa via IA com revisão da engenheira.
+2. **Serviço de Auditoria de Conformidade:** Relatório de "Semáforo de Riscos" (Verde/Amarelo/Vermelho).
+
+---
+
+## 5. Regras de Ouro do Sistema
+
+1. **Isolamento (Sandboxing):** Código de um agente nunca interfere no outro.
+2. **Rastreabilidade:** Toda conclusão de IA deve citar a evidência (foto, áudio ou lei).
+3. **Simplicidade Profissional:** Backend minimalista (menos arquivos, mais inteligência).
+4. **Evolução Sem Refatoração:** Novos serviços (ex: Licenciamento) são adicionados como novos Agentes, sem alterar o núcleo.
+
+---
+
+Este documento está pronto para ser a base do nosso código.

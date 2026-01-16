@@ -1,134 +1,132 @@
-<div class="max-w-md mx-auto space-y-8 pb-20">
-  <div class="flex items-center justify-between border-b border-[#30363d] pb-6">
+<div class="max-w-md mx-auto space-y-8 pb-20 animate-fade-in" x-data="vistoriaModule">
+  <div class="flex items-center justify-between border-b border-slate-200 pb-6">
     <div>
       <h2
-        class="text-xl font-black uppercase tracking-tighter text-emerald-500"
+        class="text-xl font-black uppercase tracking-tighter text-emerald-600"
       >
         Vistoria de Campo
       </h2>
       <p
-        class="text-[10px] text-zinc-500 font-mono"
-        x-text="'REF: ' + (pgrsData.razao || 'GERADOR_NÃO_IDENTIFICADO')"
+        class="text-[10px] text-slate-400 font-mono uppercase tracking-wider"
+        x-text="'REF: ' + (pgrsData.setor || 'ÁREA_DE_ESTUDO')"
       ></p>
     </div>
     <div class="text-right">
-      <span class="text-[9px] font-bold text-zinc-500 block uppercase"
+      <span class="text-[9px] font-bold text-slate-400 block uppercase tracking-widest"
         >GPS Ativo</span
       >
       <span
-        class="inline-block w-2 h-2 bg-emerald-500 rounded-full animate-pulse"
+        class="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"
       ></span>
     </div>
   </div>
 
   <div class="space-y-6">
     <div
-      class="glass-panel p-6 rounded-[2rem] border-t-4 border-blue-500 shadow-xl"
+      class="glass-panel p-6 rounded-[2rem] border-t-4 border-blue-500 bg-white border-slate-100 shadow-sm"
     >
-      <label class="text-[10px] font-black text-zinc-500 uppercase block mb-3">
-        Setor ou Área Visitada (Ponto de Geração)
-      </label>
+      <label class="text-[10px] font-black text-slate-400 uppercase block mb-3 tracking-widest"
+        >Setor ou Área Visitada (Ponto de Geração)</label
+      >
       <input
         type="text"
-        class="input-field mb-4"
+        class="input-field mb-4 placeholder:text-slate-300"
         placeholder="Ex: Almoxarifado Central / Pátio de Sucata"
         x-model="pgrsData.setor"
       />
 
-      <div class="grid grid-cols-3 gap-2">
+      <div class="grid grid-cols-3 gap-3">
         <button
           @click="$dispatch('capture-photo')"
-          class="flex flex-col items-center justify-center p-4 bg-[#0d1117] border border-[#30363d] rounded-2xl active:scale-95 transition-transform hover:border-blue-500/50"
+          class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-2xl active:scale-95 transition-all hover:bg-blue-50 hover:border-blue-200 group"
         >
-          <span class="text-lg">📷</span>
-          <span class="text-[8px] font-bold uppercase mt-2 text-zinc-400"
+          <span class="text-xl group-hover:scale-110 transition-transform">📷</span>
+          <span class="text-[8px] font-bold uppercase mt-2 text-slate-500 group-hover:text-blue-600"
             >Foto</span
           >
         </button>
-
         <button
           @click="$dispatch('record-video')"
-          class="flex flex-col items-center justify-center p-4 bg-[#0d1117] border border-[#30363d] rounded-2xl active:scale-95 transition-transform hover:border-red-500/50"
+          class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-2xl active:scale-95 transition-all hover:bg-red-50 hover:border-red-200 group"
         >
-          <span class="text-lg">🎥</span>
-          <span class="text-[8px] font-bold uppercase mt-2 text-zinc-400"
+          <span class="text-xl group-hover:scale-110 transition-transform">🎥</span>
+          <span class="text-[8px] font-bold uppercase mt-2 text-slate-500 group-hover:text-red-600"
             >Vídeo</span
           >
         </button>
-
         <button
           @click="$dispatch('start-audio')"
-          class="flex flex-col items-center justify-center p-4 bg-[#0d1117] border border-[#30363d] rounded-2xl active:scale-95 transition-transform hover:border-emerald-500/50"
+          class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-2xl active:scale-95 transition-all hover:bg-emerald-50 hover:border-emerald-200 group"
         >
-          <span class="text-lg">🎤</span>
-          <span class="text-[8px] font-bold uppercase mt-2 text-zinc-400"
+          <span class="text-xl group-hover:scale-110 transition-transform">🎤</span>
+          <span class="text-[8px] font-bold uppercase mt-2 text-slate-500 group-hover:text-emerald-600"
             >Voz IA</span
           >
         </button>
       </div>
     </div>
 
-    <div class="glass-panel p-6 rounded-[2rem] space-y-4">
+    <div
+      class="glass-panel p-6 rounded-[2rem] bg-white border-slate-100 space-y-4 shadow-sm"
+    >
       <h4
-        class="text-[10px] font-black text-white uppercase tracking-widest border-b border-white/5 pb-2"
+        class="text-[10px] font-black text-slate-800 uppercase tracking-widest border-b border-slate-50 pb-2 flex justify-between items-center"
       >
         Checklist de Conformidade Ambiental
+        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
       </h4>
-
-      <template
-        x-for="(check, index) in [
-          {id: 'segregacao', label: 'Segregação na Fonte (NBR 10004)'},
-          {id: 'armazenamento', label: 'Armazenamento Coberto/Impermeável'},
-          {id: 'identificacao', label: 'Rotulagem de Resíduos (GHS/NBR 7500)'},
-          {id: 'vazamento', label: 'Dispositivos de Contenção/Kits Mitigação'}
-        ]"
-        :key="index"
-      >
-        <div
-          class="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5"
-        >
-          <span
-            class="text-[11px] text-zinc-300 font-medium"
-            x-text="check.label"
-          ></span>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" class="sr-only peer" />
-            <div
-              class="w-9 h-5 bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"
-            ></div>
-          </label>
-        </div>
-      </template>
+      <div class="space-y-2">
+        <template x-for="(val, key) in checklistItems" :key="key">
+          <div
+            class="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl border border-slate-100 hover:border-emerald-200 transition-colors"
+          >
+            <span
+              class="text-[11px] text-slate-600 font-semibold"
+              x-text="val"
+            ></span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                x-model="checklist[key]"
+                class="sr-only peer"
+              />
+              <div
+                class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 shadow-inner"
+              ></div>
+            </label>
+          </div>
+        </template>
+      </div>
     </div>
 
     <div
-      class="glass-panel p-6 rounded-[2rem] border-t-4 border-amber-500 shadow-xl"
+      class="glass-panel p-6 rounded-[2rem] border-t-4 border-amber-400 bg-white border-slate-100 shadow-sm"
     >
       <div class="flex justify-between items-center mb-3">
-        <label class="text-[10px] font-black text-zinc-500 uppercase block">
-          Relato Técnico da Engenheira
-        </label>
+        <label class="text-[10px] font-black text-slate-400 uppercase block tracking-widest"
+          >Relato Técnico da Engenharia</label
+        >
         <span
-          class="text-[9px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded font-bold"
+          class="text-[9px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded font-black border border-amber-100"
           >CORE INPUT</span
         >
       </div>
-
       <textarea
         x-model="pgrsData.observacoes"
-        class="input-field h-40 resize-none text-xs leading-relaxed"
-        placeholder="A IA analisará este texto em conjunto com as fotos/vídeos para sugerir inconformidades no laudo final..."
+        class="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 h-40 resize-none text-xs leading-relaxed text-slate-700 outline-none focus:border-amber-400 focus:bg-white transition-all placeholder:text-slate-300"
+        placeholder="Descreva os resíduos encontrados, volumes estimados e condições de manejo..."
       ></textarea>
 
       <div
         x-show="generating"
-        class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center gap-3"
+        x-cloak
+        class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3 animate-pulse"
       >
         <div
           class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"
         ></div>
         <p
-          class="text-[10px] text-blue-400 font-bold"
+          class="text-[10px] text-blue-600 font-bold uppercase tracking-tight"
           x-text="statusMessage"
         ></p>
       </div>
@@ -137,7 +135,7 @@
     <button
       @click="consolidateAnalysis()"
       :disabled="generating"
-      class="w-full py-5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-emerald-900/40 transition-all flex items-center justify-center gap-3"
+      class="btn-primary w-full py-5 rounded-[1.5rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-3 disabled:bg-slate-200 disabled:shadow-none"
     >
       <span x-show="!generating" class="flex items-center gap-3">
         <svg
@@ -155,7 +153,7 @@
         </svg>
         Sincronizar e Auditar com IA
       </span>
-      <span x-show="generating">Processando Dados Multimodais...</span>
+      <span x-show="generating" class="tracking-widest">Auditoria em Tempo Real...</span>
     </button>
   </div>
 </div>

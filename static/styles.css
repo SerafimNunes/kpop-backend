@@ -1,54 +1,174 @@
+/**
+ * Auren Platform - UI Theme v3.0 (Soft Engineering Edition)
+ * Foco: Clareza, Performance Visual e Confiabilidade Técnica.
+ */
+
 [x-cloak] {
   display: none !important;
 }
+
+:root {
+  --primary-emerald: #10b981;
+  --primary-dark: #059669;
+  --bg-main: #f8fafc;
+  --text-base: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
 body {
-  background: #010409;
-  color: #f8fafc;
-  font-family: "Inter", sans-serif;
-  overflow-x: hidden;
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%);
+  color: var(--text-base);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  min-height: 100vh;
 }
+
 .font-mono {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
 }
+
+/* Glassmorphism Soft Mode */
 .glass-panel {
-  background: rgba(13, 17, 23, 0.8);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(48, 54, 61, 1);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+    0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
 }
+
+/* Sidebar Navigation Refatorada */
 .sidebar-btn {
-  transition: all 0.2s;
-  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 10px;
+  color: var(--text-muted);
+  margin: 2px 0;
   border-left: 3px solid transparent;
 }
+
+.sidebar-btn:hover {
+  background: rgba(16, 185, 129, 0.06);
+  color: var(--primary-dark);
+}
+
 .sidebar-btn.active {
-  background: rgba(35, 134, 54, 0.1);
-  color: #2ea043;
-  border-left: 3px solid #2ea043;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--primary-dark);
+  border-left-color: var(--primary-emerald);
+  font-weight: 600;
 }
+
+/* Inputs Técnicos */
 .input-field {
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  padding: 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 14px;
   font-size: 14px;
-  color: white;
+  color: var(--text-base);
   width: 100%;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
+
 .input-field:focus {
-  border-color: #2ea043;
+  border-color: var(--primary-emerald);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
+
+.input-field::placeholder {
+  color: #94a3b8;
+}
+
+/* Cards de Estatística Soft */
 .stat-card {
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
   padding: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Botões de Ação Profissionais */
+.btn-primary {
+  background: #10b981;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Scrollbar para Ambiente Soft */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #30363d;
+  background: #cbd5e1;
   border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Labels e Títulos */
+.section-title {
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.label-tech {
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+}
+
+/* Animações de Transição */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }

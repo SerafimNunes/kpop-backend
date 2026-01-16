@@ -7,31 +7,33 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>AUREN | Platform ERP</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script
       defer
       src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
-  <body x-data="aurenPlatform()" x-init="init()" class="custom-scrollbar">
+  <body x-data="aurenPlatform()" class="custom-scrollbar bg-[#F8FAFC]">
     <div class="flex h-screen overflow-hidden">
       <aside
-        class="w-64 bg-[#0d1117] border-r border-[#30363d] flex flex-col p-6 space-y-8 z-50"
+        class="w-64 bg-white border-r border-slate-200 flex flex-col p-6 space-y-8 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
       >
         <div>
-          <h1 class="text-2xl font-black tracking-tighter text-white">
-            Auren<span class="text-[#d4af37]">.</span>
+          <h1 class="text-2xl font-black tracking-tighter text-slate-900">
+            Auren<span class="text-[#10b981]">.</span>
           </h1>
           <p
-            class="text-[9px] font-mono text-zinc-500 uppercase tracking-widest"
+            class="text-[9px] font-mono text-slate-400 uppercase tracking-widest"
           >
-            CONSULTORIA AMBIENTAL // v1.0
+            CONSULTORIA AMBIENTAL // v2.0
           </p>
         </div>
 
@@ -39,19 +41,19 @@
           <template x-for="item in menuItems" :key="item.id">
             <button
               @click="currentTab = item.id"
-              :class="currentTab === item.id ? 'active bg-white/5 text-white border-l-2 border-[#d4af37]' : ''"
-              class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all duration-200 rounded-lg"
+              :class="currentTab === item.id ? 'active' : ''"
+              class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200"
             >
-              <span x-html="item.icon"></span>
+              <span x-html="item.icon" class="w-5 h-5"></span>
               <span x-text="item.label"></span>
             </button>
           </template>
         </nav>
 
-        <div class="pt-6 border-t border-[#30363d]">
+        <div class="pt-6 border-t border-slate-100">
           <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span class="text-[10px] font-mono text-zinc-500 uppercase"
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span class="text-[10px] font-mono text-slate-400 uppercase"
               >Engine Online</span
             >
           </div>
@@ -59,7 +61,7 @@
       </aside>
 
       <main
-        class="flex-1 overflow-y-auto bg-[#010409] p-8 md:p-12 custom-scrollbar"
+        class="flex-1 overflow-y-auto bg-[#F8FAFC] p-8 md:p-12 custom-scrollbar relative"
       >
         <div
           x-show="sections[currentTab]"
@@ -74,10 +76,10 @@
           class="flex items-center justify-center h-full"
         >
           <div
-            class="text-zinc-500 font-mono animate-pulse flex flex-col items-center gap-4"
+            class="text-slate-400 font-mono animate-pulse flex flex-col items-center gap-4"
           >
             <div
-              class="w-12 h-12 border-4 border-[#d4af37]/20 border-t-[#d4af37] rounded-full animate-spin"
+              class="w-12 h-12 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin"
             ></div>
             Carregando Auren Engine...
           </div>
@@ -85,6 +87,12 @@
       </main>
     </div>
 
-    <script src="auren.js"></script>
+    <script src="js/auren-core.js"></script>
+    <script src="js/modules/dashboard.js"></script>
+    <script src="js/modules/business.js"></script>
+    <script src="js/modules/intelligence.js"></script>
+    <script src="js/modules/pgrs.js"></script>
+    <script src="js/modules/vistoria.js"></script>
+    <script src="js/modules/auditoria.js"></script>
   </body>
 </html>

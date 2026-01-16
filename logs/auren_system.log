@@ -1,0 +1,496 @@
+2026/01/14 08:54:25 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 08:54:25 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 08:54:25 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 08:54:25 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 08:54:25 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 08:54:28 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 08:54:28 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 08:54:28 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 08:54:28 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 08:54:28 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 08:54:28 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 08:54:28 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 08:54:28 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 08:54:28 main.go:191: ==================================================
+2026/01/14 08:54:28 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 08:54:28 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 08:54:28 main.go:194: 🌍 REDE (IPv4): http://192.168.216.225:8080?token=auren-platform-DEMO
+2026/01/14 08:54:28 main.go:195: ==================================================
+2026/01/14 08:54:46 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:63722
+2026/01/14 08:54:47 hub.go:48: 🔌 [HUB] Novo terminal conectado: 8e7392db (Total: 1)
+2026/01/14 08:55:02 socket_service.go:105: [WS] Executando: process_intelligence_source (Cliente: 8e7392db)
+2026/01/14 08:57:03 socket_service.go:105: [WS] Executando: process_intelligence_source (Cliente: 8e7392db)
+2026/01/14 08:57:04 audio_service.go:31: 🔗 [MEDIA-ANALYSIS] Iniciando escuta técnica na URL: https://youtu.be/UvjXIvHdWaw?si=IDSdDtPGSpZOWH-0
+2026/01/14 08:57:27 audio_service.go:63: 🛑 [MEDIA-ANALYSIS] Finalizando captura de áudio e limpando processos.
+2026/01/14 08:58:23 socket_service.go:105: [WS] Executando: process_intelligence_source (Cliente: 8e7392db)
+2026/01/14 08:58:23 audio_service.go:31: 🔗 [MEDIA-ANALYSIS] Iniciando escuta técnica na URL: https://youtu.be/UvjXIvHdWaw?si=IDSdDtPGSpZOWH-0
+2026/01/14 08:58:31 audio_service.go:63: 🛑 [MEDIA-ANALYSIS] Finalizando captura de áudio e limpando processos.
+2026/01/14 09:08:41 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 09:08:41 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 09:08:41 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 09:08:41 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 09:08:41 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 09:08:43 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 09:08:43 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 09:08:43 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 09:08:43 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 09:08:43 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 09:08:43 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 09:08:43 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 09:08:43 main.go:191: ==================================================
+2026/01/14 09:08:43 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 09:08:43 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 09:08:43 main.go:194: 🌍 REDE (IPv4): http://192.168.216.225:8080?token=auren-platform-DEMO
+2026/01/14 09:08:43 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 09:08:43 main.go:195: ==================================================
+2026/01/14 09:12:09 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:55403
+2026/01/14 09:12:09 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:10 hub.go:48: 🔌 [HUB] Novo terminal conectado: 4c7555dd (Total: 1)
+2026/01/14 09:12:11 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:11 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:13 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:13 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:13 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:13 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:13 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:15 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:15 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:15 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:15 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:15 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:16 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:16 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:16 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:16 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:16 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:12:19 socket_service.go:54: [WS] Cliente 4c7555dd desconectado e removido do Hub
+2026/01/14 09:12:19 hub.go:55: 🔌 [HUB] Terminal desconectado: 4c7555dd
+2026/01/14 09:12:24 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:65318
+2026/01/14 09:12:25 hub.go:48: 🔌 [HUB] Novo terminal conectado: 80fa13d0 (Total: 1)
+2026/01/14 09:12:46 socket_service.go:105: [WS] Executando: audit_incident_alert (Cliente: 80fa13d0)
+2026/01/14 09:12:46 socket_service.go:155: [WS] Ação desconhecida: audit_incident_alert
+2026/01/14 09:13:03 socket_service.go:105: [WS] Executando: audit_incident_alert (Cliente: 80fa13d0)
+2026/01/14 09:13:03 socket_service.go:155: [WS] Ação desconhecida: audit_incident_alert
+2026/01/14 09:13:08 socket_service.go:105: [WS] Executando: audit_incident_alert (Cliente: 80fa13d0)
+2026/01/14 09:13:08 socket_service.go:155: [WS] Ação desconhecida: audit_incident_alert
+2026/01/14 09:16:24 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 09:16:24 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 09:16:24 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 09:16:24 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 09:16:24 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 09:16:25 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 09:16:25 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 09:16:25 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 09:16:25 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 09:16:25 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 09:16:25 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 09:16:25 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 09:16:25 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 09:16:25 main.go:191: ==================================================
+2026/01/14 09:16:25 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 09:16:25 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 09:16:25 main.go:194: 🌍 REDE (IPv4): http://192.168.216.225:8080?token=auren-platform-DEMO
+2026/01/14 09:16:25 main.go:195: ==================================================
+2026/01/14 09:16:54 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:49194
+2026/01/14 09:16:57 hub.go:48: 🔌 [HUB] Novo terminal conectado: cac40352 (Total: 1)
+2026/01/14 09:16:58 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:16:59 socket_service.go:54: [WS] Cliente cac40352 desconectado e removido do Hub
+2026/01/14 09:16:59 hub.go:55: 🔌 [HUB] Terminal desconectado: cac40352
+2026/01/14 09:17:01 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:61186
+2026/01/14 09:17:03 hub.go:48: 🔌 [HUB] Novo terminal conectado: 096776a4 (Total: 1)
+2026/01/14 09:17:22 socket_service.go:105: [WS] Executando: generate_proposal (Cliente: 096776a4)
+2026/01/14 09:17:22 business.go:23: 💰 [BUSINESS] Gerando proposta para: vale do rio doce - Serviço: PGRS
+2026/01/14 09:18:38 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:18:39 hub.go:55: 🔌 [HUB] Terminal desconectado: 096776a4
+2026/01/14 09:18:39 socket_service.go:54: [WS] Cliente 096776a4 desconectado e removido do Hub
+2026/01/14 09:18:42 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:49655
+2026/01/14 09:18:42 hub.go:48: 🔌 [HUB] Novo terminal conectado: 467d58b1 (Total: 1)
+2026/01/14 09:18:43 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:18:43 socket_service.go:54: [WS] Cliente 467d58b1 desconectado e removido do Hub
+2026/01/14 09:18:43 hub.go:55: 🔌 [HUB] Terminal desconectado: 467d58b1
+2026/01/14 09:18:46 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:53905
+2026/01/14 09:18:46 hub.go:48: 🔌 [HUB] Novo terminal conectado: 346a1898 (Total: 1)
+2026/01/14 09:19:05 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:19:05 socket_service.go:54: [WS] Cliente 346a1898 desconectado e removido do Hub
+2026/01/14 09:19:05 hub.go:55: 🔌 [HUB] Terminal desconectado: 346a1898
+2026/01/14 09:19:11 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:50297
+2026/01/14 09:19:11 hub.go:48: 🔌 [HUB] Novo terminal conectado: 4b86e97b (Total: 1)
+2026/01/14 09:19:50 socket_service.go:105: [WS] Executando: generate_proposal (Cliente: 4b86e97b)
+2026/01/14 09:19:50 business.go:23: 💰 [BUSINESS] Gerando proposta para: Vale do Rio Doce - Serviço: PGRS
+2026/01/14 09:34:54 socket_service.go:54: [WS] Cliente 4b86e97b desconectado e removido do Hub
+2026/01/14 09:34:54 hub.go:55: 🔌 [HUB] Terminal desconectado: 4b86e97b
+2026/01/14 09:35:15 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:52016
+2026/01/14 09:35:16 hub.go:48: 🔌 [HUB] Novo terminal conectado: 85b4a66e (Total: 1)
+2026/01/14 09:35:17 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:35:19 socket_service.go:54: [WS] Cliente 85b4a66e desconectado e removido do Hub
+2026/01/14 09:35:19 hub.go:55: 🔌 [HUB] Terminal desconectado: 85b4a66e
+2026/01/14 09:35:19 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:65427
+2026/01/14 09:35:20 hub.go:48: 🔌 [HUB] Novo terminal conectado: 3a0f8fdc (Total: 1)
+2026/01/14 09:35:21 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:35:22 socket_service.go:54: [WS] Cliente 3a0f8fdc desconectado e removido do Hub
+2026/01/14 09:35:22 hub.go:55: 🔌 [HUB] Terminal desconectado: 3a0f8fdc
+2026/01/14 09:35:23 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:64546
+2026/01/14 09:35:23 hub.go:48: 🔌 [HUB] Novo terminal conectado: 607263a8 (Total: 1)
+2026/01/14 09:36:10 socket_service.go:105: [WS] Executando: generate_proposal (Cliente: 607263a8)
+2026/01/14 09:36:10 business.go:23: 💰 [BUSINESS] Gerando proposta para: Vale do RIo doce - Serviço: PGRS
+2026/01/14 09:56:21 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 09:56:24 hub.go:55: 🔌 [HUB] Terminal desconectado: 607263a8
+2026/01/14 09:56:24 socket_service.go:54: [WS] Cliente 607263a8 desconectado e removido do Hub
+2026/01/14 09:56:28 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:56494
+2026/01/14 09:56:28 hub.go:48: 🔌 [HUB] Novo terminal conectado: d32d8419 (Total: 1)
+2026/01/14 10:00:08 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 10:00:08 socket_service.go:54: [WS] Cliente d32d8419 desconectado e removido do Hub
+2026/01/14 10:00:08 hub.go:55: 🔌 [HUB] Terminal desconectado: d32d8419
+2026/01/14 10:00:16 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:65491
+2026/01/14 10:00:16 hub.go:48: 🔌 [HUB] Novo terminal conectado: b63658c0 (Total: 1)
+2026/01/14 10:00:51 socket_service.go:105: [WS] Executando: generate_proposal (Cliente: b63658c0)
+2026/01/14 10:00:51 business.go:23: 💰 [BUSINESS] Gerando proposta para: Hospital de Clínicas de Curitiba - Serviço: PGRS
+2026/01/14 10:19:01 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 10:19:01 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 10:19:01 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 10:19:01 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 10:19:01 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 10:19:04 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 10:19:04 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 10:19:04 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 10:19:04 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 10:19:04 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 10:19:04 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 10:19:04 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 10:19:04 main.go:191: ==================================================
+2026/01/14 10:19:04 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 10:19:04 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 10:19:04 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 10:19:04 main.go:195: ==================================================
+2026/01/14 10:19:04 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 10:29:43 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 10:29:44 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 10:29:44 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 10:29:44 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 10:29:44 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 10:29:50 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 10:29:50 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 10:29:50 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 10:29:51 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 10:29:51 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 10:29:51 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 10:29:51 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 10:29:51 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 10:29:51 main.go:191: ==================================================
+2026/01/14 10:29:51 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 10:29:51 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 10:29:51 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 10:29:51 main.go:195: ==================================================
+2026/01/14 10:30:55 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 10:31:02 main.go:134: 🔌 [WS] Conexão estabelecida: 192.168.1.21:55403
+2026/01/14 10:31:03 hub.go:48: 🔌 [HUB] Novo terminal conectado: 4f5a3890 (Total: 1)
+2026/01/14 10:31:04 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 10:31:05 socket_service.go:54: [WS] Cliente 4f5a3890 desconectado e removido do Hub
+2026/01/14 10:31:05 hub.go:55: 🔌 [HUB] Terminal desconectado: 4f5a3890
+2026/01/14 10:31:18 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 10:31:55 main.go:134: 🔌 [WS] Conexão estabelecida: 192.168.1.21:57219
+2026/01/14 10:31:57 hub.go:48: 🔌 [HUB] Novo terminal conectado: 566ce5f5 (Total: 1)
+2026/01/14 10:33:03 main.go:155: 📦 Servindo Core UI: ./static/auren.html
+2026/01/14 10:33:04 socket_service.go:54: [WS] Cliente 566ce5f5 desconectado e removido do Hub
+2026/01/14 10:33:04 hub.go:55: 🔌 [HUB] Terminal desconectado: 566ce5f5
+2026/01/14 10:33:23 main.go:134: 🔌 [WS] Conexão estabelecida: 192.168.1.21:51776
+2026/01/14 10:33:23 hub.go:48: 🔌 [HUB] Novo terminal conectado: 409fc3b2 (Total: 1)
+2026/01/14 10:43:48 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:53582
+2026/01/14 10:43:51 hub.go:48: 🔌 [HUB] Novo terminal conectado: 29419357 (Total: 2)
+2026/01/14 10:43:53 hub.go:55: 🔌 [HUB] Terminal desconectado: 409fc3b2
+2026/01/14 10:43:53 socket_service.go:54: [WS] Cliente 409fc3b2 desconectado e removido do Hub
+2026/01/14 10:48:51 hub.go:55: 🔌 [HUB] Terminal desconectado: 29419357
+2026/01/14 10:48:51 socket_service.go:54: [WS] Cliente 29419357 desconectado e removido do Hub
+2026/01/14 10:50:19 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:55187
+2026/01/14 10:50:19 hub.go:48: 🔌 [HUB] Novo terminal conectado: d544ec46 (Total: 1)
+2026/01/14 10:53:20 socket_service.go:54: [WS] Cliente d544ec46 desconectado e removido do Hub
+2026/01/14 10:53:20 hub.go:55: 🔌 [HUB] Terminal desconectado: d544ec46
+2026/01/14 10:53:21 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:52243
+2026/01/14 10:53:21 hub.go:48: 🔌 [HUB] Novo terminal conectado: ebe2d9ac (Total: 1)
+2026/01/14 10:58:21 socket_service.go:54: [WS] Cliente ebe2d9ac desconectado e removido do Hub
+2026/01/14 10:58:21 hub.go:55: 🔌 [HUB] Terminal desconectado: ebe2d9ac
+2026/01/14 10:58:24 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:54392
+2026/01/14 10:58:24 hub.go:48: 🔌 [HUB] Novo terminal conectado: 518eac51 (Total: 1)
+2026/01/14 10:58:58 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:63602
+2026/01/14 10:58:58 hub.go:48: 🔌 [HUB] Novo terminal conectado: 985f8be1 (Total: 2)
+2026/01/14 10:59:57 hub.go:55: 🔌 [HUB] Terminal desconectado: 985f8be1
+2026/01/14 10:59:57 socket_service.go:54: [WS] Cliente 985f8be1 desconectado e removido do Hub
+2026/01/14 11:03:24 socket_service.go:54: [WS] Cliente 518eac51 desconectado e removido do Hub
+2026/01/14 11:03:24 hub.go:55: 🔌 [HUB] Terminal desconectado: 518eac51
+2026/01/14 11:03:29 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:56535
+2026/01/14 11:03:29 hub.go:48: 🔌 [HUB] Novo terminal conectado: 9f519f24 (Total: 1)
+2026/01/14 11:08:29 socket_service.go:54: [WS] Cliente 9f519f24 desconectado e removido do Hub
+2026/01/14 11:08:29 hub.go:55: 🔌 [HUB] Terminal desconectado: 9f519f24
+2026/01/14 11:24:12 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:64044
+2026/01/14 11:24:12 hub.go:48: 🔌 [HUB] Novo terminal conectado: c954bcf2 (Total: 1)
+2026/01/14 11:29:12 socket_service.go:54: [WS] Cliente c954bcf2 desconectado e removido do Hub
+2026/01/14 11:29:12 hub.go:55: 🔌 [HUB] Terminal desconectado: c954bcf2
+2026/01/14 11:38:11 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:52340
+2026/01/14 11:38:11 hub.go:48: 🔌 [HUB] Novo terminal conectado: ce2a4113 (Total: 1)
+2026/01/14 11:43:11 socket_service.go:54: [WS] Cliente ce2a4113 desconectado e removido do Hub
+2026/01/14 11:43:11 hub.go:55: 🔌 [HUB] Terminal desconectado: ce2a4113
+2026/01/14 12:10:07 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:55563
+2026/01/14 12:10:07 hub.go:48: 🔌 [HUB] Novo terminal conectado: d876d965 (Total: 1)
+2026/01/14 12:15:07 socket_service.go:54: [WS] Cliente d876d965 desconectado e removido do Hub
+2026/01/14 12:15:07 hub.go:55: 🔌 [HUB] Terminal desconectado: d876d965
+2026/01/14 15:55:26 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 15:55:26 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 15:55:26 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 15:55:26 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 15:55:26 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 15:55:28 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 15:55:28 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 15:55:28 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 15:55:28 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 15:55:28 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 15:55:28 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 15:55:28 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 15:55:28 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 15:55:28 main.go:191: ==================================================
+2026/01/14 15:55:28 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 15:55:28 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 15:55:28 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 15:55:28 main.go:195: ==================================================
+2026/01/14 15:55:44 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:57359
+2026/01/14 15:55:44 hub.go:48: 🔌 [HUB] Novo terminal conectado: cf35e2a2 (Total: 1)
+2026/01/14 16:00:38 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 16:00:38 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 16:00:38 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 16:00:38 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 16:00:38 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 16:00:42 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 16:00:42 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 16:00:42 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 16:00:42 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 16:00:42 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 16:00:42 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 16:00:42 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 16:00:42 main.go:191: ==================================================
+2026/01/14 16:00:42 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 16:00:42 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 16:00:42 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 16:00:42 main.go:195: ==================================================
+2026/01/14 16:00:42 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 16:00:45 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:58228
+2026/01/14 16:00:45 hub.go:48: 🔌 [HUB] Novo terminal conectado: fc807a2b (Total: 1)
+2026/01/14 16:02:47 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 16:02:47 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 16:02:47 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 16:02:47 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 16:02:47 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 16:02:49 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 16:02:50 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 16:02:50 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 16:02:50 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 16:02:50 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 16:02:50 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 16:02:50 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 16:02:50 main.go:191: ==================================================
+2026/01/14 16:02:50 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 16:02:50 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 16:02:50 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 16:02:50 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 16:02:50 main.go:195: ==================================================
+2026/01/14 16:05:06 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 16:05:06 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 16:05:06 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 16:05:06 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 16:05:06 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 16:05:21 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 16:05:21 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 16:05:21 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 16:05:22 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 16:05:22 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 16:05:22 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 16:05:22 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 16:05:22 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 16:05:22 main.go:191: ==================================================
+2026/01/14 16:05:22 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 16:05:22 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 16:05:22 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 16:05:22 main.go:195: ==================================================
+2026/01/14 16:07:05 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 16:07:05 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 16:07:05 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 16:07:05 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 16:07:05 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 16:07:08 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 16:07:08 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 16:07:08 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 16:07:08 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 16:07:08 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 16:07:08 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 16:07:08 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 16:07:08 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 16:07:08 main.go:191: ==================================================
+2026/01/14 16:07:08 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 16:07:08 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 16:07:08 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 16:07:08 main.go:195: ==================================================
+2026/01/14 16:09:36 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 16:09:36 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 16:09:36 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 16:09:36 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 16:09:36 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 16:09:39 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 16:09:39 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 16:09:39 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 16:09:41 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 16:09:42 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 16:09:42 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 16:09:42 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 16:09:42 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 16:09:42 main.go:191: ==================================================
+2026/01/14 16:09:42 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 16:09:42 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 16:09:42 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 16:09:42 main.go:195: ==================================================
+2026/01/14 16:13:03 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 16:13:03 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 16:13:03 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 16:13:03 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 16:13:04 db.go:166: 🐘 [AUREN-DB] Sincronizando Schema com UI/UX Frontend-First...
+2026/01/14 16:13:05 db.go:192: ✅ [DB] Schema Auren v2.0 Consolidado.
+2026/01/14 16:13:05 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 16:13:05 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 16:13:05 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 16:13:05 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 16:13:05 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 16:13:05 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 16:13:05 main.go:191: ==================================================
+2026/01/14 16:13:05 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 16:13:05 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 16:13:06 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/14 16:13:06 main.go:195: ==================================================
+2026/01/14 16:13:05 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 16:13:22 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:53855
+2026/01/14 16:13:22 hub.go:48: 🔌 [HUB] Novo terminal conectado: 7bb59648 (Total: 1)
+2026/01/14 16:13:23 socket_service.go:54: [WS] Cliente 7bb59648 desconectado e removido do Hub
+2026/01/14 16:13:23 hub.go:55: 🔌 [HUB] Terminal desconectado: 7bb59648
+2026/01/14 16:13:30 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:50929
+2026/01/14 16:13:30 hub.go:48: 🔌 [HUB] Novo terminal conectado: f69b2af7 (Total: 1)
+2026/01/14 16:15:18 socket_service.go:54: [WS] Cliente f69b2af7 desconectado e removido do Hub
+2026/01/14 16:15:18 hub.go:55: 🔌 [HUB] Terminal desconectado: f69b2af7
+2026/01/14 17:24:36 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 17:24:36 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 17:24:36 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 17:24:36 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 17:24:36 db.go:224: 🐘 [AUREN-DB] Sincronizando Schema Produção v2.9...
+2026/01/14 17:24:43 db.go:248: ❌ [DB FATAL] Falha no AutoMigrate: ERRO: inserção ou atualização em tabela "proposta" viola restrição de chave estrangeira "fk_geradors_propostas" (SQLSTATE 23503)
+2026/01/14 17:26:40 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 17:26:40 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 17:26:40 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 17:26:40 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 17:26:40 db.go:224: 🐘 [AUREN-DB] Sincronizando Schema Produção v2.9...
+2026/01/14 17:26:42 db.go:248: ❌ [DB FATAL] Falha no AutoMigrate: ERRO: inserção ou atualização em tabela "proposta" viola restrição de chave estrangeira "fk_geradors_propostas" (SQLSTATE 23503)
+2026/01/14 17:44:21 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/14 17:44:22 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/14 17:44:23 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/14 17:44:23 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/14 17:44:23 db.go:224: 🐘 [AUREN-DB] Sincronizando Schema Produção v2.9...
+2026/01/14 17:44:29 db.go:252: ✅ [DB] Schema Auren Consolidado e Pronto para Operação.
+2026/01/14 17:44:29 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/14 17:44:29 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/14 17:44:30 main.go:95: ✅ Gemini Service operacional.
+2026/01/14 17:44:30 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/14 17:44:30 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/14 17:44:30 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/14 17:44:30 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/14 17:44:30 main.go:191: ==================================================
+2026/01/14 17:44:30 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/14 17:44:30 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/14 17:44:30 main.go:194: 🌍 REDE (IPv4): http://192.168.240.225:8080?token=auren-platform-DEMO
+2026/01/14 17:44:30 main.go:195: ==================================================
+2026/01/14 17:45:51 main.go:134: 🔌 [WS] Conexão estabelecida: [::1]:49407
+2026/01/14 17:45:51 hub.go:48: 🔌 [HUB] Novo terminal conectado: 4f4accdb (Total: 1)
+2026/01/14 17:46:19 business.go:23: 💰 [BUSINESS] Gerando proposta para: Vale S.A - Serviço: PGRS
+2026/01/14 17:50:03 hub.go:55: 🔌 [HUB] Terminal desconectado: 4f4accdb
+2026/01/15 12:47:38 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/15 12:47:38 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/15 12:47:39 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/15 12:47:39 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/15 12:47:39 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/15 12:47:39 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/15 12:47:39 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/15 12:47:40 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/15 12:47:40 db.go:224: 🐘 [AUREN-DB] Sincronizando Schema Produção v2.9...
+2026/01/15 12:47:40 db.go:224: 🐘 [AUREN-DB] Sincronizando Schema Produção v2.9...
+2026/01/15 12:47:46 db.go:252: ✅ [DB] Schema Auren Consolidado e Pronto para Operação.
+2026/01/15 12:47:46 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/15 12:47:46 db.go:252: ✅ [DB] Schema Auren Consolidado e Pronto para Operação.
+2026/01/15 12:47:46 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/15 12:47:46 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/15 12:47:46 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/15 12:47:47 main.go:95: ✅ Gemini Service operacional.
+2026/01/15 12:47:47 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/15 12:47:47 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/15 12:47:47 main.go:95: ✅ Gemini Service operacional.
+2026/01/15 12:47:47 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/15 12:47:47 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/15 12:47:47 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/15 12:47:47 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/15 12:47:47 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/15 12:47:47 main.go:191: ==================================================
+2026/01/15 12:47:47 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/15 12:47:47 main.go:191: ==================================================
+2026/01/15 12:47:47 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/15 12:47:47 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/15 12:47:47 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/15 12:47:47 main.go:195: ==================================================
+2026/01/15 12:47:47 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/15 12:47:47 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/15 12:47:47 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/15 12:47:47 main.go:195: ==================================================
+2026/01/15 12:47:48 main.go:222: ❌ ERRO CRÍTICO DE EXECUÇÃO: listen tcp 0.0.0.0:8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2026/01/15 12:48:38 main.go:203: 
+🛑 Sinal de interrupção recebido. Iniciando encerramento seguro...
+2026/01/15 12:59:11 main.go:47: ### 🛠️  Iniciando sequência de boot da Auren Platform ###
+2026/01/15 12:59:11 main.go:53: ✅ Variáveis de ambiente carregadas via .env
+2026/01/15 12:59:11 main.go:69: ✅ Credenciais Google configuradas via arquivo: google-creds.json
+2026/01/15 12:59:11 main.go:87: 🐘 Conectando ao Banco de Dados e Sincronizando Esquemas...
+2026/01/15 12:59:11 db.go:224: 🐘 [AUREN-DB] Sincronizando Schema Produção v2.9...
+2026/01/15 12:59:13 db.go:252: ✅ [DB] Schema Auren Consolidado e Pronto para Operação.
+2026/01/15 12:59:13 main.go:90: 🧠 Inicializando Vertex AI (Gemini Service Multimodal)...
+2026/01/15 12:59:13 client.go:58: WARNING:  Starting on June 24, 2025, the cloud.google.com/go/vertexai/genai package is deprecated and will be removed on June 24, 2026, except cloud.google.com/go/vertexai/genai/tokenizer.
+New users are encouraged to use the Google GenAI Go SDK available at [google.golang.org/genai](http://pkg.go.dev/google.golang.org/genai).
+For information about migrating to the Google Gen AI SDK, see [Vertex AI SDK migration guide](https://cloud.google.com/vertex-ai/generative-ai/docs/deprecations/genai-vertexai-sdk)
+2026/01/15 12:59:13 main.go:95: ✅ Gemini Service operacional.
+2026/01/15 12:59:13 main.go:97: 🎙️  Configurando Processador de Mídia e Escuta Digital...
+2026/01/15 12:59:13 main.go:100: 🌐 Iniciando Hub de Comunicação Realtime...
+2026/01/15 12:59:13 main.go:105: 🛣️  Configurando malha de roteamento HTTP/WS...
+2026/01/15 12:59:13 hub.go:41: 📡 [HUB] Motor de eventos em tempo real iniciado.
+2026/01/15 12:59:14 main.go:191: ==================================================
+2026/01/15 12:59:14 main.go:192: 🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL
+2026/01/15 12:59:14 main.go:193: 🚀 ERP LOCAL: http://localhost:8080?token=auren-platform-DEMO
+2026/01/15 12:59:14 main.go:194: 🌍 REDE (IPv4): http://192.168.1.21:8080?token=auren-platform-DEMO
+2026/01/15 12:59:14 main.go:195: ==================================================
