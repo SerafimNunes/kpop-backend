@@ -1,0 +1,63 @@
+<div x-data="comercialModule" class="space-y-6 animate-fade-in">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-black tracking-tight text-slate-900 uppercase">
+        Propostas & Contratos
+      </h2>
+      <p class="text-slate-400 text-sm font-mono">
+        Fluxo Comercial Integrado com Engine
+      </p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-6">
+    <div
+      class="col-span-12 md:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
+    >
+      <div class="mb-4">
+        <label class="block text-xs font-bold uppercase text-slate-500"
+          >Empresa</label
+        >
+        <input
+          x-model="comercialData.cliente"
+          type="text"
+          class="mt-2 w-full rounded border border-slate-100 p-3"
+          placeholder="Razão Social"
+        />
+      </div>
+
+      <div class="space-y-3">
+        <button
+          @click="generateDoc('draft_proposal')"
+          class="w-full bg-emerald-500 text-white py-3 rounded font-bold"
+        >
+          Gerar Proposta
+        </button>
+        <button
+          @click="generateDoc('generate_contract')"
+          class="w-full bg-slate-900 text-white py-3 rounded font-bold"
+        >
+          Converter para Contrato
+        </button>
+        <button
+          @click="exportToPDF()"
+          class="w-full bg-slate-50 border border-slate-100 text-slate-700 py-3 rounded font-bold"
+        >
+          Exportar PDF
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="col-span-12 md:col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm"
+    >
+      <div class="mb-4">
+        <h3 class="font-bold text-slate-900">Preview do Documento</h3>
+        <div
+          class="mt-2 text-[13px] text-slate-700"
+          x-html="formatDoc(output)"
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>
