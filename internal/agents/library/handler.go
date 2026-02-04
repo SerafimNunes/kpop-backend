@@ -8,8 +8,8 @@ import (
 // HandleLibraryAction gerencia a equipe de pesquisa
 func HandleLibraryAction(ctx context.Context, lib *Librarian, action string, payload map[string]interface{}) (interface{}, error) {
 	// Librarian já vem instanciado do Core, precisamos dos novos
-	curador := NewCurador(lib.gemini) // Acesso ao gemini via Librarian (pode exigir ajuste de visibilidade ou passar Gemini direto no handler)
-	radar := NewRadar(lib.gemini)
+	curador := NewCurador(lib.Gemini) // Acesso ao gemini via Librarian (pode exigir ajuste de visibilidade ou passar Gemini direto no handler)
+	radar := NewRadar(lib.Gemini, nil)
 
 	query, _ := payload["query"].(string)
 

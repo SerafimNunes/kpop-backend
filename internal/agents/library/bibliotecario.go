@@ -3,28 +3,43 @@ package library
 import (
 	"context"
 	"fmt"
-	"io" // Adicionado para suportar a leitura do stream de texto
+	"io"
 	"log"
 	"regexp"
 	"strings"
+
+	"auren-platform/internal/infrastructure/gemini"
 
 	"cloud.google.com/go/vertexai/genai"
 	"github.com/ledongthuc/pdf"
 )
 
-// LibrarianAgent é responsável pela gestão e extração de conhecimento de fontes técnicas
-type LibrarianAgent struct {
-	Svc *GeminiService
+// Librarian é o Agente de Pesquisa/RAG (Público para ser visto pelo Core)
+type Librarian struct {
+	Gemini *gemini.Service
 }
 
-// NewLibrarian instancia um novo agente bibliotecário
-func NewLibrarian(svc *GeminiService) *LibrarianAgent {
-	return &LibrarianAgent{Svc: svc}
+// NewLibrarian instancia o agente usando a infraestrutura de IA universal
+func NewLibrarian(svc *gemini.Service) *Librarian {
+	return &Librarian{Gemini: svc}
 }
 
-// ExtractTextFromPDF usa o ledongthuc/pdf para extração rápida e compatível
-func (l *LibrarianAgent) ExtractTextFromPDF(filePath string) (string, error) {
-	log.Printf("📄 [LIBRARIAN] Extraindo texto via ledongthuc/pdf: %s", filePath)
+// Search implementa a interface de busca rápida exigida pelos Handlers
+func (l *Librarian) Search(ctx context.Context, query string) (interface{}, error) {
+	log.Printf("🔍 [LIBRARIAN] Executando busca semântica: %s", query)
+
+	// Utiliza o Gemini para processar a busca no contexto de conhecimento
+	prompt := fmt.Sprintf("Como especialista em conformidade, responda: %s", query)
+	res, err := l.Gemini.Generate(ctx, []genai.Part{genai.Text(prompt)}, "Busca Técnica Auren")
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// ExtractTextFromPDF extração de texto para alimentar a base de conhecimento
+func (l *Librarian) ExtractTextFromPDF(filePath string) (string, error) {
+	log.Printf("📄 [LIBRARIAN] Extraindo texto do PDF: %s", filePath)
 
 	f, r, err := pdf.Open(filePath)
 	if err != nil {
@@ -32,14 +47,11 @@ func (l *LibrarianAgent) ExtractTextFromPDF(filePath string) (string, error) {
 	}
 	defer f.Close()
 
-	// r.GetPlainText() retorna um Reader para o texto do PDF
 	reader, err := r.GetPlainText()
 	if err != nil {
 		return "", fmt.Errorf("erro ao processar texto do PDF: %v", err)
 	}
 
-	// Correção: strings.Builder não tem ReadFrom.
-	// Usamos io.ReadAll para ler todo o conteúdo do Reader fornecido pela biblioteca.
 	content, err := io.ReadAll(reader)
 	if err != nil {
 		return "", fmt.Errorf("erro ao ler stream de texto do PDF: %v", err)
@@ -48,8 +60,8 @@ func (l *LibrarianAgent) ExtractTextFromPDF(filePath string) (string, error) {
 	return string(content), nil
 }
 
-// applyDCTR (Document Context Token Reduction) - Mantendo sua lógica original
-func (l *LibrarianAgent) applyDCTR(text string) string {
+// applyDCTR (Document Context Token Reduction) - Redução inteligente de tokens
+func (l *Librarian) applyDCTR(text string) string {
 	// 1. Limpeza de metadados e URLs
 	reLinks := regexp.MustCompile(`http[s]?://\S+|www\.\S+`)
 	text = reLinks.ReplaceAllString(text, "")
@@ -58,7 +70,7 @@ func (l *LibrarianAgent) applyDCTR(text string) string {
 	reRefs := regexp.MustCompile(`(?i)(Referências|Bibliográficas|References|Bibliography)`)
 	loc := reRefs.FindStringIndex(text)
 	if loc != nil {
-		log.Println("✂️ [DCTR] Seção de referências localizada e removida.")
+		log.Println("✂️ [DCTR] Seção de referências removida.")
 		text = text[:loc[0]]
 	}
 
@@ -69,11 +81,11 @@ func (l *LibrarianAgent) applyDCTR(text string) string {
 	return strings.TrimSpace(text)
 }
 
-// ProcessKnowledge executa a análise profunda
-func (l *LibrarianAgent) ProcessKnowledge(ctx context.Context, rawContent string, source string) (string, error) {
+// ProcessKnowledge executa a análise profunda de documentos para o storage/knowledge
+func (l *Librarian) ProcessKnowledge(ctx context.Context, rawContent string, source string) (string, error) {
 	cleanedContent := l.applyDCTR(rawContent)
 
-	log.Printf("🧠 [LIBRARIAN] Conteúdo reduzido de %d para %d caracteres.", len(rawContent), len(cleanedContent))
+	log.Printf("🧠 [LIBRARIAN] Conteúdo otimizado: %d para %d caracteres.", len(rawContent), len(cleanedContent))
 
 	systemInstruction := `### AGENTE BIBLIOTECÁRIO AUREN
 Você é um Auditor Ambiental. Analise o documento técnico fornecido.
@@ -83,5 +95,5 @@ REJEITE: Textos puramente teóricos ou opiniões de autores sem base legal clara
 	fullPrompt := fmt.Sprintf("%s\n\n--- FONTE: %s ---\n\n--- CONTEÚDO ---\n%s\n\n--- TAREFA ---\nCrie um Sumário Executivo com: 1. Obrigações, 2. Riscos e 3. Próximos Passos.",
 		systemInstruction, source, cleanedContent)
 
-	return l.Svc.Generate(ctx, []genai.Part{genai.Text(fullPrompt)}, systemInstruction)
+	return l.Gemini.Generate(ctx, []genai.Part{genai.Text(fullPrompt)}, systemInstruction)
 }

@@ -1,0 +1,219 @@
+# 🌐 DOCUMENTAÇÃO DA API
+## AUREN PLATFORM v2.0 - REST + WebSocket
+
+**Versão:** 2.0.0  
+**Data:** 01/02/2026  
+**Base URL:** `http://localhost:8083/api`  
+
+---
+
+## 🔐 AUTENTICAÇÃO
+
+Todas as rotas protegidas requerem JWT token no header:
+
+```http
+Authorization: Bearer {token}
+```
+
+### POST /api/auth/login
+
+**Request:**
+```json
+{
+  "email": "admin@auren.com.br",
+  "password": "admin123"
+}
+```
+
+**Response 200:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1...",
+  "user": {
+    "id": 1,
+    "nome": "Administrador",
+    "email": "admin@auren.com.br",
+    "role": "ADMIN"
+  }
+}
+```
+
+---
+
+## 📄 ENDPOINTS - PGRS
+
+### POST /api/pgrs
+
+Criar novo PGRS em rascunho.
+
+**Request:**
+```json
+{
+  "unidade_id": 1,
+  "dados_formulario": "{...}"
+}
+```
+
+**Response 201:**
+```json
+{
+  "id": 1,
+  "numero": "PGRS-2026-001",
+  "status": "RASCUNHO",
+  "created_at": "2026-02-01T10:00:00Z"
+}
+```
+
+### GET /api/pgrs/:id
+
+Buscar PGRS por ID.
+
+**Response 200:**
+```json
+{
+  "id": 1,
+  "numero": "PGRS-2026-001",
+  "status": "APROVADO",
+  "unidade": {
+    "id": 1,
+    "nome": "Unidade Matriz"
+  }
+}
+```
+
+### POST /api/pgrs/:id/gerar
+
+Iniciar geração com IA.
+
+**Response 202:**
+```json
+{
+  "message": "Geração iniciada"
+}
+```
+
+### POST /api/pgrs/:id/aprovar
+
+Aprovar PGRS.
+
+**Request:**
+```json
+{
+  "revisor_id": 1,
+  "observacoes": "Aprovado"
+}
+```
+
+**Response 200:**
+```json
+{
+  "message": "PGRS aprovado com sucesso"
+}
+```
+
+### GET /api/pgrs/:id/download
+
+Baixar DOCX gerado.
+
+**Response:** Arquivo .docx
+
+---
+
+## 🔌 WEBSOCKET
+
+### Conexão
+
+```javascript
+const ws = new WebSocket('ws://localhost:8083/ws');
+
+ws.onopen = () => {
+  console.log('Conectado');
+};
+
+ws.onmessage = (event) => {
+  const msg = JSON.parse(event.data);
+  console.log('Mensagem:', msg);
+};
+```
+
+### Mensagens
+
+**Formato:**
+```json
+{
+  "action": "dominio.acao",
+  "payload": {...}
+}
+```
+
+**Exemplo - Gerar PGRS:**
+```json
+{
+  "action": "pgrs.gerar",
+  "payload": {
+    "pgrs_id": 1
+  }
+}
+```
+
+**Resposta - Status:**
+```json
+{
+  "action": "pgrs.status",
+  "payload": {
+    "pgrs_id": 1,
+    "status": "Gerando memorial descritivo..."
+  }
+}
+```
+
+**Resposta - Concluído:**
+```json
+{
+  "action": "pgrs.gerado",
+  "payload": {
+    "pgrs_id": 1,
+    "relatorio": "# MEMORIAL DESCRITIVO..."
+  }
+}
+```
+
+---
+
+## 📋 CÓDIGOS DE STATUS
+
+| Código | Significado |
+|--------|-------------|
+| 200 | OK |
+| 201 | Criado |
+| 202 | Aceito (processamento assíncrono) |
+| 400 | Bad Request |
+| 401 | Não autorizado |
+| 403 | Proibido |
+| 404 | Não encontrado |
+| 500 | Erro interno |
+
+---
+
+## 🧪 EXEMPLOS - cURL
+
+```bash
+# Login
+curl -X POST http://localhost:8083/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@auren.com.br","password":"admin123"}'
+
+# Criar PGRS
+curl -X POST http://localhost:8083/api/pgrs \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"unidade_id":1}'
+
+# Gerar PGRS
+curl -X POST http://localhost:8083/api/pgrs/1/gerar \
+  -H "Authorization: Bearer {token}"
+```
+
+---
+
+**Veja código completo:** GUIA_DESENVOLVIMENTO.md

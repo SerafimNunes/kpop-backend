@@ -1,0 +1,266 @@
+<section x-data="financeiroModule()" class="space-y-8 animate-fade-in">
+  <div
+    class="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-900 p-8 rounded-[2.5rem] text-white"
+  >
+    <div>
+      <h2 class="text-3xl font-black tracking-tighter uppercase italic">
+        Auren <span class="text-emerald-400">Capital</span>
+      </h2>
+      <p
+        class="text-[9px] font-mono text-slate-400 uppercase tracking-[0.3em] mt-2 flex items-center gap-2"
+      >
+        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+        Sincronizado com Banco Central & Receita
+      </p>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="text-right hidden md:block px-6 border-r border-slate-800">
+        <p class="text-[8px] font-black text-slate-500 uppercase">
+          Liquidez Imediata
+        </p>
+        <p class="text-lg font-bold">R$0,00</p>
+      </div>
+      <button
+        @click="isModalOpen = true"
+        class="bg-emerald-500 hover:bg-white hover:text-slate-900 text-white px-6 py-4 rounded-2xl text-[10px] font-black transition-all flex items-center gap-3 tracking-widest shadow-xl shadow-emerald-900/20"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 4v16m8-8H4" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        NOVO APORTE / SAÍDA
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <template x-for="metric in metrics" :key="metric.id">
+      <div
+        class="bg-white p-7 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow group"
+      >
+        <div class="flex justify-between items-start mb-4">
+          <span
+            class="p-2 bg-slate-50 rounded-xl group-hover:bg-slate-900 group-hover:text-white transition-colors"
+            x-text="metric.icon"
+          ></span>
+          <span
+            :class="metric.trend >= 0 ? 'text-emerald-500 bg-emerald-50' : 'text-red-500 bg-red-50'"
+            class="text-[9px] font-black px-2 py-1 rounded-lg"
+          >
+            <span x-text="metric.trend >= 0 ? '↑' : '↓'"></span>
+            <span x-text="Math.abs(metric.trend) + '%'"></span>
+          </span>
+        </div>
+        <span
+          class="text-[10px] font-black text-slate-400 uppercase block tracking-tighter"
+          x-text="metric.label"
+        ></span>
+        <div
+          class="text-2xl font-black text-slate-900 mt-1 tracking-tighter"
+          x-text="formatCurrency(metric.value)"
+        ></div>
+      </div>
+    </template>
+  </div>
+
+  <div
+    class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden"
+  >
+    <div
+      class="p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4"
+    >
+      <h3 class="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">
+        Movimentação de Ativos
+      </h3>
+      <div class="relative w-full md:w-72">
+        <input
+          type="text"
+          x-model="searchTerm"
+          placeholder="Buscar por descrição..."
+          class="w-full text-[11px] bg-slate-50 border-none rounded-xl px-5 py-3 focus:ring-2 focus:ring-emerald-500 font-medium"
+        />
+        <span class="absolute right-4 top-3 opacity-20">🔍</span>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-slate-50/50">
+            <th
+              class="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none"
+            >
+              Data
+            </th>
+            <th
+              class="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none"
+            >
+              Descrição do Ativo
+            </th>
+            <th
+              class="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none"
+            >
+              Categoria
+            </th>
+            <th
+              class="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none"
+            >
+              Status
+            </th>
+            <th
+              class="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none text-right"
+            >
+              Valor
+            </th>
+            <th
+              class="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none text-center"
+            >
+              Compliance IA
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          <template x-for="txn in filteredTransactions" :key="txn.id">
+            <tr class="hover:bg-slate-50/80 transition-all group">
+              <td
+                class="px-8 py-6 font-mono text-[10px] text-slate-400"
+                x-text="txn.date"
+              ></td>
+              <td class="px-8 py-6">
+                <span
+                  class="text-[13px] font-bold text-slate-800 block"
+                  x-text="txn.description"
+                ></span>
+                <span
+                  class="text-[9px] text-slate-400 uppercase font-medium"
+                  x-text="'ID: #' + txn.id.toString().slice(-4)"
+                ></span>
+              </td>
+              <td class="px-8 py-6">
+                <span
+                  class="px-3 py-1.5 rounded-lg bg-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-tighter"
+                  x-text="txn.category"
+                ></span>
+              </td>
+              <td class="px-8 py-6">
+                <div class="flex items-center gap-2">
+                  <div
+                    :class="{
+                                        'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]': txn.status === 'pago',
+                                        'bg-amber-500 animate-pulse': txn.status === 'pendente',
+                                        'bg-red-500': txn.status === 'atrasado'
+                                    }"
+                    class="w-2 h-2 rounded-full"
+                  ></div>
+                  <span
+                    class="text-[10px] font-black text-slate-700 uppercase tracking-tighter"
+                    x-text="txn.status"
+                  ></span>
+                </div>
+              </td>
+              <td
+                :class="txn.type === 'entrada' ? 'text-emerald-600' : 'text-slate-900'"
+                class="px-8 py-6 text-right font-black text-sm"
+                x-text="(txn.type === 'entrada' ? '+ ' : '- ') + formatCurrency(txn.amount)"
+              ></td>
+              <td class="px-8 py-6 text-center">
+                <button
+                  @click="getTaxAdvice(txn)"
+                  class="p-3 rounded-xl bg-slate-50 group-hover:bg-slate-900 group-hover:text-white transition-all text-slate-400"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></path>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div
+    x-show="isTaxModalOpen"
+    class="fixed inset-0 z-[100] overflow-hidden"
+    x-cloak
+  >
+    <div
+      class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+      @click="closeTaxModal()"
+    ></div>
+    <div
+      class="absolute inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl p-10 transform transition-transform duration-300 flex flex-col"
+      x-transition:enter="translate-x-full"
+      x-transition:leave="translate-x-full"
+    >
+      <div class="flex justify-between items-center mb-10">
+        <h3
+          class="text-xl font-black text-slate-900 uppercase italic tracking-tighter"
+        >
+          Tax <span class="text-emerald-500">Intelligence</span>
+        </h3>
+        <button
+          @click="closeTaxModal()"
+          class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-8 pr-4 custom-scrollbar">
+        <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <p class="text-[9px] font-black text-slate-400 uppercase mb-2">
+            Item sob Análise
+          </p>
+          <p
+            class="font-bold text-slate-900"
+            x-text="currentTxnForAdvice?.description"
+          ></p>
+          <p
+            class="text-2xl font-black text-emerald-600 mt-1"
+            x-text="formatCurrency(currentTxnForAdvice?.amount)"
+          ></p>
+        </div>
+
+        <div class="prose prose-slate">
+          <template x-if="isTaxLoading">
+            <div class="space-y-4">
+              <div class="h-4 bg-slate-100 rounded animate-pulse w-3/4"></div>
+              <div class="h-4 bg-slate-100 rounded animate-pulse w-full"></div>
+              <div class="h-4 bg-slate-100 rounded animate-pulse w-5/6"></div>
+            </div>
+          </template>
+          <div
+            x-show="!isTaxLoading"
+            x-html="taxAdvice"
+            class="text-sm leading-relaxed font-medium text-slate-600"
+          ></div>
+        </div>
+      </div>
+
+      <div class="pt-8 mt-8 border-t border-slate-100">
+        <button
+          @click="closeTaxModal()"
+          class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest"
+        >
+          Concluir Análise
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

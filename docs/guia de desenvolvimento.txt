@@ -1,0 +1,267 @@
+# 💻 GUIA DE DESENVOLVIMENTO
+## AUREN PLATFORM v2.0 - PADRÕES E BOAS PRÁTICAS
+
+**Versão:** 2.0.0  
+**Data:** 01/02/2026  
+
+---
+
+## 🎯 PROPÓSITO
+
+Este documento define os padrões de código, convenções e boas práticas para desenvolvimento no Auren Platform.
+
+---
+
+## 📋 CONVENÇÕES GERAIS
+
+### Naming Conventions
+
+**Go (Backend):**
+```go
+// Pacotes: lowercase
+package pgrs
+
+// Tipos exportados: PascalCase
+type PGRSService struct {}
+
+// Funções exportadas: PascalCase
+func CriarPGRS() {}
+
+// Funções privadas: camelCase
+func validarDados() {}
+
+// Constantes: PascalCase ou SCREAMING_SNAKE_CASE
+const StatusAprovado = "APROVADO"
+const MAX_RETRIES = 3
+
+// Variáveis: camelCase
+var dadosFormulario map[string]interface{}
+```
+
+**JavaScript (Frontend):**
+```javascript
+// Variáveis: camelCase
+const userName = "João";
+
+// Funções: camelCase
+function validarFormulario() {}
+
+// Classes: PascalCase
+class PGRSManager {}
+
+// Constantes: SCREAMING_SNAKE_CASE
+const API_BASE_URL = "http://localhost:8083";
+```
+
+### Estrutura de Arquivos
+
+**Sempre siga:**
+```
+domain/nome/
+├── models/         → Entidades
+├── repository/     → Acesso dados
+├── service/        → Lógica negócio
+├── handlers/       → HTTP/WS
+└── dto/            → Contratos
+```
+
+---
+
+## 🔧 PADRÕES DE CÓDIGO
+
+### 1. Sempre use Context
+
+```go
+// ✅ BOM
+func (s *PGRSService) Criar(ctx context.Context, req *dto.Request) error {
+    return s.repo.Create(ctx, pgrs)
+}
+
+// ❌ RUIM
+func (s *PGRSService) Criar(req *dto.Request) error {
+    return s.repo.Create(pgrs)
+}
+```
+
+### 2. Tratamento de Erros
+
+```go
+// ✅ BOM - Wrap errors
+if err := s.repo.Create(ctx, pgrs); err != nil {
+    return fmt.Errorf("falha ao criar PGRS: %w", err)
+}
+
+// ❌ RUIM - Ignorar erro
+s.repo.Create(ctx, pgrs)
+```
+
+### 3. Validações
+
+```go
+// ✅ BOM - Validar entrada
+func (s *Service) Criar(req *dto.Request) error {
+    if req.Nome == "" {
+        return errors.New("nome é obrigatório")
+    }
+    // ...
+}
+```
+
+### 4. Testes
+
+```go
+// ✅ BOM - Arrange, Act, Assert
+func TestService_Criar(t *testing.T) {
+    // Arrange
+    mockRepo := &MockRepo{}
+    service := NewService(mockRepo)
+    
+    // Act
+    err := service.Criar(ctx, &dto.Request{})
+    
+    // Assert
+    assert.NoError(t, err)
+}
+```
+
+---
+
+## 📚 COMO ADICIONAR FEATURE
+
+### Passo 1: Criar Model
+```go
+// internal/domain/pgrs/models/pgrs.go
+type PGRS struct {
+    ID     uint
+    Status string
+}
+```
+
+### Passo 2: Criar Repository
+```go
+// internal/domain/pgrs/repository/interfaces.go
+type PGRSRepository interface {
+    Create(ctx context.Context, pgrs *models.PGRS) error
+}
+
+// internal/domain/pgrs/repository/pgrs_repo.go
+type pgrsRepository struct {
+    db *gorm.DB
+}
+
+func (r *pgrsRepository) Create(ctx context.Context, pgrs *models.PGRS) error {
+    return r.db.WithContext(ctx).Create(pgrs).Error
+}
+```
+
+### Passo 3: Criar Service
+```go
+// internal/domain/pgrs/service/pgrs_service.go
+type PGRSService struct {
+    repo repository.PGRSRepository
+}
+
+func (s *PGRSService) Criar(ctx context.Context) error {
+    pgrs := &models.PGRS{Status: "RASCUNHO"}
+    return s.repo.Create(ctx, pgrs)
+}
+```
+
+### Passo 4: Criar Handler
+```go
+// internal/domain/pgrs/handlers/http_handler.go
+type HTTPHandler struct {
+    service *service.PGRSService
+}
+
+func (h *HTTPHandler) Create(c *gin.Context) {
+    err := h.service.Criar(c.Request.Context())
+    if err != nil {
+        c.JSON(500, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(201, gin.H{"message": "Criado"})
+}
+```
+
+### Passo 5: Registrar Rota
+```go
+// cmd/server/main.go
+pgrsHandler := handlers.NewHTTPHandler(pgrsService)
+router.POST("/api/pgrs", pgrsHandler.Create)
+```
+
+---
+
+## ✅ CODE REVIEW CHECKLIST
+
+Antes de criar Pull Request:
+
+- [ ] Código compila sem erros
+- [ ] Todos os testes passam
+- [ ] Cobertura de testes > 80%
+- [ ] Sem warnings do linter
+- [ ] Documentação atualizada
+- [ ] Commit messages descritivos
+- [ ] Branch atualizada com develop
+
+---
+
+## 🧪 TESTES
+
+### Unitários
+```go
+func TestService_Criar(t *testing.T) {
+    mockRepo := &MockRepo{}
+    service := NewService(mockRepo)
+    
+    err := service.Criar(context.Background())
+    assert.NoError(t, err)
+}
+```
+
+### Integração
+```go
+func TestAPI_Criar(t *testing.T) {
+    // Setup
+    router := setupRouter()
+    
+    // Request
+    w := httptest.NewRecorder()
+    req, _ := http.NewRequest("POST", "/api/pgrs", nil)
+    router.ServeHTTP(w, req)
+    
+    // Assert
+    assert.Equal(t, 201, w.Code)
+}
+```
+
+---
+
+## 📦 GIT WORKFLOW
+
+### Branches
+```
+main          → Produção
+develop       → Desenvolvimento
+feature/*     → Features
+bugfix/*      → Correções
+hotfix/*      → Emergências
+```
+
+### Commits
+```bash
+# Formato
+tipo(escopo): descrição
+
+# Exemplos
+feat(pgrs): adicionar validação de CNPJ
+fix(auth): corrigir bug no JWT
+docs(api): atualizar documentação
+test(pgrs): adicionar testes unitários
+refactor(admin): melhorar service
+```
+
+---
+
+**Mantenha este guia atualizado!**

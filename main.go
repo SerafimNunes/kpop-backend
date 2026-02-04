@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -15,9 +14,10 @@ import (
 	"syscall"
 	"time"
 
-	"auren-platform/core/user"
+	"auren-platform/core/events" // Importação vital para o Hub
 	"auren-platform/db"
-	"auren-platform/internal/engine" // Novo motor central
+	adminsvc "auren-platform/internal/domain/admin/service"
+	"auren-platform/internal/engine"
 	"auren-platform/media_analysis"
 	"auren-platform/realtime"
 
@@ -26,18 +26,10 @@ import (
 )
 
 func main() {
-	// --- CONFIGURAÇÃO DE LOGGING PERSISTENTE (MANIFESTO 1.4) ---
+	// --- CONFIGURAÇÃO DE LOGGING ---
 	logDir := "./logs"
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		fmt.Printf("❌ Falha crítica ao criar diretório de logs: %v\n", err)
-		os.Exit(1)
-	}
-
-	logFile, err := os.OpenFile(filepath.Join(logDir, "auren_system.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Printf("❌ Falha crítica ao abrir arquivo de log: %v\n", err)
-		os.Exit(1)
-	}
+	_ = os.MkdirAll(logDir, 0755)
+	logFile, _ := os.OpenFile(filepath.Join(logDir, "auren_system.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
 	mw := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(mw)
@@ -47,105 +39,120 @@ func main() {
 
 	// 0. Carregamento de Ambiente
 	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️  Aviso: Arquivo .env não localizado, utilizando variáveis de ambiente.")
+		log.Println("⚠️  Aviso: Arquivo .env não localizado.")
 	}
 
-	// 1. Inicialização de Motores e Infraestrutura
+	appToken := os.Getenv("APP_SECRET_TOKEN")
+	if appToken == "" {
+		appToken = "auren-platform-DEMO"
+	}
+
+	// 1. Inicialização de Infraestrutura
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Garantir diretórios de storage (Manifesto 1.4)
-	dirs := []string{"./storage/evidences", "./storage/knowledge"}
+	dirs := []string{"./storage/evidences", "./storage/knowledge", "./static"}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Fatalf("❌ Erro ao criar diretório de armazenamento: %v", err)
-		}
+		_ = os.MkdirAll(dir, 0755)
 	}
 
-	log.Println("🐘 Sincronizando Banco de Dados PostgreSQL...")
 	db.InitDB()
 
-	// Inicialização do Engine Central (O Cérebro)
-	log.Println("🧠 Inicializando Auren Semantic Engine & Agents...")
-	aurenEngine, err := engine.NewAurenEngine(ctx)
+	// 1.1 Hub de comunicação (Core)
+	// CORREÇÃO AQUI: Agora chamamos events.NewHub() em vez de realtime.NewHub()
+	aurenHub := events.NewHub()
+	go aurenHub.Run()
+
+	// 1.2 Engine (Negócio) - Injetando o Hub do tipo *events.Hub
+	aurenEngine, err := engine.NewAurenEngine(ctx, aurenHub)
 	if err != nil {
 		log.Fatalf("❌ CRÍTICO: Falha ao iniciar Engine: %v", err)
 	}
 
-	log.Println("🎙️  Configurando Processadores de Mídia...")
+	// 1.3 Lançamento de Agentes Autônomos
+	go aurenEngine.HunterAgent.Run(ctx)
+	go aurenEngine.RadarAgent.Run(ctx)
+
+	// 1.4 Processadores de Mídia
 	streamAudioProc := media_analysis.NewStreamAudioProcessor(40.0)
 	videoProc := media_analysis.NewVideoProcessor()
 	fileAudioProc := media_analysis.NewFileAudioProcessor()
 
-	log.Println("🌐 Iniciando Hub de Comunicação Realtime...")
-	aurenHub := realtime.NewHub()
-	go aurenHub.Run()
-
-	// 2. Roteamento (Dispatcher Pattern)
+	// 2. Roteamento
 	r := mux.NewRouter()
 
-	// --- API PROTEGIDA (O CORAÇÃO DO MANIFESTO) ---
+	// API Protegida
 	api := r.PathPrefix("/api").Subrouter()
-	api.Use(user.SecurityMiddleware)
-
-	// ENDPOINT ÚNICO: O SEMANTIC DISPATCHER
-	// Aqui o Frontend envia {module, action, payload}
+	api.Use(adminsvc.SecurityMiddleware)
 	api.HandleFunc("/execute", aurenEngine.HandleExecution).Methods("POST")
-
-	// Manter endpoint de saúde
 	api.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status": "Auren Online",
-			"engine": "AUREN-SEMANTIC-V1.4",
-			"time":   time.Now().Format(time.RFC3339),
-		})
+		json.NewEncoder(w).Encode(map[string]string{"status": "online"})
 	}).Methods("GET")
 
-	// --- WEBSOCKETS ---
+	// WebSockets
 	wsSub := r.PathPrefix("/ws").Subrouter()
-	wsSub.Use(user.SecurityMiddleware)
+	wsSub.Use(adminsvc.SecurityMiddleware)
 	wsSub.HandleFunc("/engine", func(w http.ResponseWriter, r *http.Request) {
-		realtime.ServeWS(aurenHub, aurenEngine.Gemini, streamAudioProc, videoProc, fileAudioProc, aurenEngine.Librarian, w, r)
-	})
-
-	// --- SERVIDOR DE ARQUIVOS ESTÁTICOS (UX CLEAN INDUSTRIAL) ---
-	staticDir := "./static"
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeFile(w, r, filepath.Join(staticDir, "auren.html"))
-	})
-
-	fileServer := http.FileServer(http.Dir(staticDir))
-	r.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
-		if strings.HasSuffix(path, ".js") {
-			w.Header().Set("Content-Type", "application/javascript")
-		} else if strings.HasSuffix(path, ".css") {
-			w.Header().Set("Content-Type", "text/css")
+		agentsMap := map[string]any{
+			"auditor":   aurenEngine.AuditorCampoAgent,
+			"redator":   aurenEngine.RedatorPGRSAgent,
+			"propostas": aurenEngine.PropostasAgent,
 		}
-		fileServer.ServeHTTP(w, r)
+
+		realtime.ServeWS(
+			aurenHub,
+			aurenEngine.Gemini,
+			agentsMap,
+			streamAudioProc,
+			videoProc,
+			fileAudioProc,
+			w,
+			r,
+		)
+	})
+
+	// Servidor de Arquivos Estáticos (SPA Fallback)
+	r.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api") || strings.HasPrefix(r.URL.Path, "/ws") {
+			return
+		}
+
+		path := r.URL.Path
+		if path == "/" {
+			path = "auren.html"
+		}
+
+		fullPath := filepath.Join("static", path)
+		info, err := os.Stat(fullPath)
+		if err == nil && !info.IsDir() {
+			http.ServeFile(w, r, fullPath)
+			return
+		}
+
+		http.ServeFile(w, r, filepath.Join("static", "auren.html"))
 	}))
 
-	// 3. Inicialização do Servidor
+	// 3. Configuração do Servidor
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8083"
 	}
 
 	server := &http.Server{
 		Addr:         "0.0.0.0:" + port,
 		Handler:      r,
-		ReadTimeout:  60 * time.Second,
-		WriteTimeout: 60 * time.Second,
+		ReadTimeout:  120 * time.Second,
+		WriteTimeout: 120 * time.Second,
 	}
 
-	// Banner Profissional
+	// Banner com Token Visível
 	localIP := getLocalIP()
 	log.Println("==================================================")
-	log.Println("🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE AMBIENTAL")
-	log.Printf("🚀 ERP LOCAL: http://localhost:%s", port)
-	log.Printf("🌍 REDE: http://%s:%s", localIP, port)
+	log.Println("🛡️  AUREN PLATFORM : SISTEMA DE CONFORMIDADE")
+	log.Printf("🚀 ACESSO LOCAL: http://localhost:%s/auren.html?token=%s", port, appToken)
+	log.Printf("🌍 ACESSO REDE:  http:// %s:%s/auren.html?token=%s", localIP, port, appToken)
+	log.Printf("🔑 AUTH TOKEN:   %s", appToken)
 	log.Println("==================================================")
 
 	// 4. Graceful Shutdown
@@ -154,21 +161,14 @@ func main() {
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		<-stop
 
-		log.Println("\n🛑 Iniciando encerramento seguro...")
+		log.Println("\n🛑 Encerrando Auren...")
 		aurenEngine.Close()
-
-		shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancelShutdown()
-
-		if err := server.Shutdown(shutdownCtx); err != nil {
-			log.Fatalf("❌ Falha no shutdown: %v", err)
-		}
-		logFile.Close()
-		log.Println("👋 Auren Platform encerrada.")
+		_ = server.Shutdown(ctx)
+		os.Exit(0)
 	}()
 
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatalf("❌ ERRO CRÍTICO: %v", err)
+		log.Fatalf("❌ ERRO: %v", err)
 	}
 }
 

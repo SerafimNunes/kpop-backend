@@ -1,0 +1,936 @@
+# 🏗️ REFATORAÇÃO PARA ARQUITETURA DE DOMÍNIOS (DDD)
+## AUREN PLATFORM v2.0 - ARQUITETURA LIMPA E ESCALÁVEL
+
+**Data:** 01/02/2026  
+**Versão:** 2.0.0  
+**Arquitetura:** Domain-Driven Design (DDD) + Clean Architecture  
+
+---
+
+## 🎯 PROBLEMA ATUAL
+
+### God Files Identificados:
+- ❌ `realtime/socket_service.go` - **703 linhas** (deveria ter ~100)
+- ❌ `db/db.go` - **322 linhas** (mistura models + conexão)
+- ❌ `main.go` - **182 linhas** (muita lógica de inicialização)
+
+### Problemas:
+1. **Alto acoplamento** - Mudança em um domínio afeta outros
+2. **Difícil manutenção** - Não sei onde mexer
+3. **Testes difíceis** - Não consigo testar isoladamente
+4. **Risco alto** - Bug em um lugar quebra tudo
+5. **Código duplicado** - Mesma lógica em vários lugares
+
+---
+
+## 🎯 SOLUÇÃO: ARQUITETURA DE DOMÍNIOS
+
+### Princípios:
+
+1. **Separação por domínio de negócio** (não por tipo técnico)
+2. **Cada domínio é independente**
+3. **Comunicação via interfaces**
+4. **Testes isolados por domínio**
+5. **Zero dependências circulares**
+
+### Domínios Identificados:
+
+```
+1. ADMINISTRATIVO (admin)
+   - Usuários
+   - Autenticação
+   - Permissões
+
+2. PGRS (pgrs)
+   - Criação de PGRS
+   - Revisão
+   - Aprovação
+   - Versionamento
+
+3. COMERCIAL (comercial)
+   - Propostas
+   - Contratos
+   - Faturamento
+
+4. FINANCEIRO (financeiro)
+   - Lançamentos
+   - Relatórios
+   - Dashboards
+
+5. SHARED (compartilhado)
+   - Utilitários
+   - Validações
+   - Formatadores
+```
+
+---
+
+## 📁 NOVA ESTRUTURA DE DIRETÓRIOS
+
+```
+auren-platform/
+│
+├── cmd/
+│   └── server/
+│       └── main.go                    # ← Entry point LIMPO (50 linhas)
+│
+├── internal/
+│   │
+│   ├── domain/                        # ← DOMÍNIOS (Core Business)
+│   │   │
+│   │   ├── admin/                     # Domínio Administrativo
+│   │   │   ├── models/
+│   │   │   │   ├── usuario.go
+│   │   │   │   └── session.go
+│   │   │   ├── repository/
+│   │   │   │   └── usuario_repository.go
+│   │   │   ├── service/
+│   │   │   │   ├── auth_service.go
+│   │   │   │   └── usuario_service.go
+│   │   │   ├── handlers/
+│   │   │   │   ├── http_handler.go
+│   │   │   │   └── ws_handler.go
+│   │   │   └── dto/
+│   │   │       ├── login_request.go
+│   │   │       └── usuario_response.go
+│   │   │
+│   │   ├── pgrs/                      # Domínio PGRS (CORE)
+│   │   │   ├── models/
+│   │   │   │   ├── pgrs.go
+│   │   │   │   ├── versao_pgrs.go
+│   │   │   │   ├── log_pgrs.go
+│   │   │   │   ├── gerador.go
+│   │   │   │   └── unidade.go
+│   │   │   ├── repository/
+│   │   │   │   ├── pgrs_repository.go
+│   │   │   │   ├── gerador_repository.go
+│   │   │   │   └── unidade_repository.go
+│   │   │   ├── service/
+│   │   │   │   ├── pgrs_service.go
+│   │   │   │   ├── generator_service.go    # IA
+│   │   │   │   ├── review_service.go
+│   │   │   │   └── docx_service.go
+│   │   │   ├── handlers/
+│   │   │   │   ├── http_handler.go
+│   │   │   │   └── ws_handler.go         # ← WebSocket ESPECÍFICO do PGRS
+│   │   │   ├── dto/
+│   │   │   │   ├── criar_pgrs_request.go
+│   │   │   │   ├── gerar_pgrs_request.go
+│   │   │   │   └── pgrs_response.go
+│   │   │   └── agents/                   # IAs específicas do PGRS
+│   │   │       ├── auditor.go
+│   │   │       └── redator.go
+│   │   │
+│   │   ├── comercial/                    # Domínio Comercial
+│   │   │   ├── models/
+│   │   │   │   ├── proposta.go
+│   │   │   │   └── contrato.go
+│   │   │   ├── repository/
+│   │   │   │   └── proposta_repository.go
+│   │   │   ├── service/
+│   │   │   │   └── proposta_service.go
+│   │   │   ├── handlers/
+│   │   │   │   └── http_handler.go
+│   │   │   └── dto/
+│   │   │       └── proposta_request.go
+│   │   │
+│   │   └── financeiro/                   # Domínio Financeiro
+│   │       ├── models/
+│   │       │   └── lancamento.go
+│   │       ├── repository/
+│   │       │   └── lancamento_repository.go
+│   │       ├── service/
+│   │       │   └── lancamento_service.go
+│   │       ├── handlers/
+│   │       │   └── http_handler.go
+│   │       └── dto/
+│   │           └── lancamento_request.go
+│   │
+│   ├── shared/                           # Código compartilhado
+│   │   ├── database/
+│   │   │   ├── connection.go            # ← Só conexão
+│   │   │   └── migrations.go
+│   │   ├── websocket/
+│   │   │   ├── hub.go                   # ← Hub genérico
+│   │   │   ├── client.go
+│   │   │   └── message.go
+│   │   ├── middleware/
+│   │   │   ├── auth.go
+│   │   │   ├── cors.go
+│   │   │   └── logger.go
+│   │   ├── validator/
+│   │   │   ├── cnpj.go
+│   │   │   ├── email.go
+│   │   │   └── validator.go
+│   │   ├── utils/
+│   │   │   ├── hash.go
+│   │   │   ├── jwt.go
+│   │   │   └── formatter.go
+│   │   └── errors/
+│   │       ├── app_error.go
+│   │       └── error_codes.go
+│   │
+│   └── infrastructure/                   # Integrações externas
+│       ├── gemini/
+│       │   ├── client.go
+│       │   └── config.go
+│       ├── email/
+│       │   └── smtp_client.go
+│       └── storage/
+│           └── local_storage.go
+│
+├── config/
+│   ├── config.go                        # Configurações centralizadas
+│   └── env.go
+│
+├── docs/                                 # Documentação
+│   ├── PROJETO_EXECUTIVO.md
+│   ├── ESPECIFICACAO_FUNCIONAL.md
+│   ├── MODELO_DADOS.md
+│   ├── CHECKLIST_IMPLEMENTACAO.md
+│   └── ARQUITETURA_DOMINIOS.md          # ← Este arquivo
+│
+├── migrations/                           # SQL migrations
+│   ├── 001_create_usuarios.sql
+│   ├── 002_create_geradors.sql
+│   ├── 003_create_pgrs.sql
+│   └── ...
+│
+├── scripts/                              # Scripts auxiliares
+│   ├── migrate.sh
+│   ├── seed.sh
+│   └── backup.sh
+│
+├── templates/                            # Templates de documentos
+│   └── pgrs_template.docx
+│
+├── storage/                              # Arquivos gerados
+│   ├── documents/
+│   └── backups/
+│
+├── static/                               # Frontend (mantém como está)
+│   ├── css/
+│   ├── js/
+│   └── sections/
+│
+├── .env.example
+├── go.mod
+├── go.sum
+├── Dockerfile
+└── README.md
+```
+
+---
+
+## 🔧 ANATOMIA DE UM DOMÍNIO
+
+### Exemplo: `internal/domain/pgrs/`
+
+```
+pgrs/
+│
+├── models/                    # ← Entidades de negócio (structs)
+│   ├── pgrs.go
+│   ├── gerador.go
+│   └── unidade.go
+│
+├── repository/                # ← Acesso a dados (interface + implementação)
+│   ├── interfaces.go          # Interface do repositório
+│   └── pgrs_repository.go     # Implementação com GORM
+│
+├── service/                   # ← Lógica de negócio
+│   ├── pgrs_service.go        # Regras de negócio
+│   ├── generator_service.go   # Geração com IA
+│   └── docx_service.go        # Geração de DOCX
+│
+├── handlers/                  # ← Camada de apresentação
+│   ├── http_handler.go        # REST API
+│   └── ws_handler.go          # WebSocket
+│
+├── dto/                       # ← Data Transfer Objects
+│   ├── requests.go            # Entrada
+│   └── responses.go           # Saída
+│
+└── agents/                    # ← IAs específicas (opcional)
+    ├── auditor.go
+    └── redator.go
+```
+
+---
+
+## 📦 CAMADAS E RESPONSABILIDADES
+
+### 1. MODELS (Entidades)
+**Responsabilidade:** Representar conceitos de negócio
+
+```go
+// internal/domain/pgrs/models/pgrs.go
+package models
+
+import (
+    "time"
+    "gorm.io/gorm"
+)
+
+type PGRS struct {
+    ID        uint           `gorm:"primaryKey" json:"id"`
+    CreatedAt time.Time      `json:"created_at"`
+    UpdatedAt time.Time      `json:"updated_at"`
+    DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+    
+    UnidadeID uint   `gorm:"not null" json:"unidade_id"`
+    Numero    string `gorm:"uniqueIndex;not null" json:"numero"`
+    Status    string `gorm:"not null" json:"status"`
+    
+    // ... outros campos
+}
+
+const (
+    StatusRascunho          = "RASCUNHO"
+    StatusEmGeracao         = "EM_GERACAO"
+    StatusAguardandoRevisao = "AGUARDANDO_REVISAO"
+    // ... outros status
+)
+
+// Método de negócio
+func (p *PGRS) PodeSerAprovado() bool {
+    return p.Status == StatusAguardandoRevisao
+}
+```
+
+---
+
+### 2. REPOSITORY (Acesso a Dados)
+**Responsabilidade:** Abstrair persistência
+
+```go
+// internal/domain/pgrs/repository/interfaces.go
+package repository
+
+import (
+    "context"
+    "auren-platform/internal/domain/pgrs/models"
+)
+
+type PGRSRepository interface {
+    Create(ctx context.Context, pgrs *models.PGRS) error
+    FindByID(ctx context.Context, id uint) (*models.PGRS, error)
+    FindByNumero(ctx context.Context, numero string) (*models.PGRS, error)
+    Update(ctx context.Context, pgrs *models.PGRS) error
+    Delete(ctx context.Context, id uint) error
+    List(ctx context.Context, filters map[string]interface{}) ([]*models.PGRS, error)
+}
+```
+
+```go
+// internal/domain/pgrs/repository/pgrs_repository.go
+package repository
+
+import (
+    "context"
+    "auren-platform/internal/domain/pgrs/models"
+    "gorm.io/gorm"
+)
+
+type pgrsRepository struct {
+    db *gorm.DB
+}
+
+func NewPGRSRepository(db *gorm.DB) PGRSRepository {
+    return &pgrsRepository{db: db}
+}
+
+func (r *pgrsRepository) Create(ctx context.Context, pgrs *models.PGRS) error {
+    return r.db.WithContext(ctx).Create(pgrs).Error
+}
+
+func (r *pgrsRepository) FindByID(ctx context.Context, id uint) (*models.PGRS, error) {
+    var pgrs models.PGRS
+    err := r.db.WithContext(ctx).
+        Preload("Unidade.Gerador").
+        First(&pgrs, id).Error
+    if err != nil {
+        return nil, err
+    }
+    return &pgrs, nil
+}
+
+// ... outros métodos
+```
+
+---
+
+### 3. SERVICE (Lógica de Negócio)
+**Responsabilidade:** Orquestrar regras de negócio
+
+```go
+// internal/domain/pgrs/service/pgrs_service.go
+package service
+
+import (
+    "context"
+    "fmt"
+    "time"
+    "auren-platform/internal/domain/pgrs/models"
+    "auren-platform/internal/domain/pgrs/repository"
+    "auren-platform/internal/domain/pgrs/dto"
+)
+
+type PGRSService struct {
+    repo      repository.PGRSRepository
+    generator *GeneratorService
+    docx      *DOCXService
+}
+
+func NewPGRSService(
+    repo repository.PGRSRepository,
+    generator *GeneratorService,
+    docx *DOCXService,
+) *PGRSService {
+    return &PGRSService{
+        repo:      repo,
+        generator: generator,
+        docx:      docx,
+    }
+}
+
+// Criar PGRS em estado rascunho
+func (s *PGRSService) CriarRascunho(ctx context.Context, req *dto.CriarPGRSRequest) (*models.PGRS, error) {
+    numero := s.gerarNumeroSequencial()
+    
+    pgrs := &models.PGRS{
+        UnidadeID:       req.UnidadeID,
+        Numero:          numero,
+        Status:          models.StatusRascunho,
+        DadosFormulario: req.DadosFormulario,
+    }
+    
+    if err := s.repo.Create(ctx, pgrs); err != nil {
+        return nil, fmt.Errorf("erro ao criar PGRS: %w", err)
+    }
+    
+    return pgrs, nil
+}
+
+// Gerar PGRS com IA (assíncrono)
+func (s *PGRSService) GerarComIA(ctx context.Context, pgrsID uint) error {
+    // Buscar PGRS
+    pgrs, err := s.repo.FindByID(ctx, pgrsID)
+    if err != nil {
+        return err
+    }
+    
+    // Validar estado
+    if pgrs.Status != models.StatusRascunho {
+        return fmt.Errorf("PGRS deve estar em rascunho")
+    }
+    
+    // Atualizar status
+    pgrs.Status = models.StatusEmGeracao
+    if err := s.repo.Update(ctx, pgrs); err != nil {
+        return err
+    }
+    
+    // Chamar gerador (delega para outro service)
+    go s.generator.ProcessarGeracao(ctx, pgrs)
+    
+    return nil
+}
+
+// Aprovar PGRS
+func (s *PGRSService) Aprovar(ctx context.Context, pgrsID uint, revisorID uint) error {
+    pgrs, err := s.repo.FindByID(ctx, pgrsID)
+    if err != nil {
+        return err
+    }
+    
+    if !pgrs.PodeSerAprovado() {
+        return fmt.Errorf("PGRS não pode ser aprovado no status atual")
+    }
+    
+    pgrs.Status = models.StatusAprovado
+    pgrs.RevisorID = &revisorID
+    now := time.Now()
+    pgrs.DataAprovacao = &now
+    
+    return s.repo.Update(ctx, pgrs)
+}
+
+func (s *PGRSService) gerarNumeroSequencial() string {
+    // Lógica para gerar PGRS-YYYY-NNN
+    return fmt.Sprintf("PGRS-%d-%03d", time.Now().Year(), 1) // Simplificado
+}
+```
+
+---
+
+### 4. HANDLERS (Apresentação)
+**Responsabilidade:** Receber requisições HTTP/WebSocket
+
+```go
+// internal/domain/pgrs/handlers/http_handler.go
+package handlers
+
+import (
+    "net/http"
+    "strconv"
+    "github.com/gin-gonic/gin"
+    "auren-platform/internal/domain/pgrs/service"
+    "auren-platform/internal/domain/pgrs/dto"
+)
+
+type HTTPHandler struct {
+    service *service.PGRSService
+}
+
+func NewHTTPHandler(service *service.PGRSService) *HTTPHandler {
+    return &HTTPHandler{service: service}
+}
+
+// POST /api/pgrs
+func (h *HTTPHandler) Create(c *gin.Context) {
+    var req dto.CriarPGRSRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    
+    pgrs, err := h.service.CriarRascunho(c.Request.Context(), &req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    
+    c.JSON(http.StatusCreated, pgrs)
+}
+
+// GET /api/pgrs/:id
+func (h *HTTPHandler) GetByID(c *gin.Context) {
+    id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+    
+    pgrs, err := h.service.BuscarPorID(c.Request.Context(), uint(id))
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "PGRS não encontrado"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, pgrs)
+}
+
+// POST /api/pgrs/:id/gerar
+func (h *HTTPHandler) GerarComIA(c *gin.Context) {
+    id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+    
+    err := h.service.GerarComIA(c.Request.Context(), uint(id))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    
+    c.JSON(http.StatusOK, gin.H{"message": "Geração iniciada"})
+}
+
+// RegisterRoutes registra todas as rotas HTTP do domínio
+func (h *HTTPHandler) RegisterRoutes(router *gin.RouterGroup) {
+    pgrs := router.Group("/pgrs")
+    {
+        pgrs.POST("", h.Create)
+        pgrs.GET("/:id", h.GetByID)
+        pgrs.POST("/:id/gerar", h.GerarComIA)
+        pgrs.POST("/:id/aprovar", h.Aprovar)
+        // ... outras rotas
+    }
+}
+```
+
+```go
+// internal/domain/pgrs/handlers/ws_handler.go
+package handlers
+
+import (
+    "context"
+    "encoding/json"
+    "log"
+    "auren-platform/internal/domain/pgrs/service"
+    "auren-platform/internal/shared/websocket"
+)
+
+type WSHandler struct {
+    service *service.PGRSService
+}
+
+func NewWSHandler(service *service.PGRSService) *WSHandler {
+    return &WSHandler{service: service}
+}
+
+// HandleMessage processa mensagens WebSocket específicas do domínio PGRS
+func (h *WSHandler) HandleMessage(client *websocket.Client, message []byte) error {
+    var msg websocket.Message
+    if err := json.Unmarshal(message, &msg); err != nil {
+        return err
+    }
+    
+    switch msg.Action {
+    case "pgrs.gerar":
+        return h.handleGerar(client, msg.Payload)
+    case "pgrs.aprovar":
+        return h.handleAprovar(client, msg.Payload)
+    default:
+        log.Printf("[PGRS WS] Ação desconhecida: %s", msg.Action)
+    }
+    
+    return nil
+}
+
+func (h *WSHandler) handleGerar(client *websocket.Client, payload json.RawMessage) error {
+    var req struct {
+        PGRSID uint `json:"pgrs_id"`
+    }
+    
+    if err := json.Unmarshal(payload, &req); err != nil {
+        return err
+    }
+    
+    ctx := context.Background()
+    err := h.service.GerarComIA(ctx, req.PGRSID)
+    
+    if err != nil {
+        client.Send(websocket.Message{
+            Action: "pgrs.gerar.erro",
+            Payload: map[string]string{"error": err.Error()},
+        })
+        return err
+    }
+    
+    client.Send(websocket.Message{
+        Action: "pgrs.gerar.iniciado",
+        Payload: map[string]uint{"pgrs_id": req.PGRSID},
+    })
+    
+    return nil
+}
+```
+
+---
+
+### 5. DTO (Data Transfer Objects)
+**Responsabilidade:** Contratos de entrada/saída
+
+```go
+// internal/domain/pgrs/dto/requests.go
+package dto
+
+type CriarPGRSRequest struct {
+    UnidadeID       uint   `json:"unidade_id" binding:"required"`
+    DadosFormulario string `json:"dados_formulario" binding:"required"`
+}
+
+type GerarPGRSRequest struct {
+    PGRSID uint `json:"pgrs_id" binding:"required"`
+}
+
+type AprovarPGRSRequest struct {
+    PGRSID      uint   `json:"pgrs_id" binding:"required"`
+    RevisorID   uint   `json:"revisor_id" binding:"required"`
+    Observacoes string `json:"observacoes"`
+}
+```
+
+```go
+// internal/domain/pgrs/dto/responses.go
+package dto
+
+import "time"
+
+type PGRSResponse struct {
+    ID              uint       `json:"id"`
+    Numero          string     `json:"numero"`
+    Status          string     `json:"status"`
+    NomeEmpresa     string     `json:"nome_empresa"`
+    NomeUnidade     string     `json:"nome_unidade"`
+    DataCriacao     time.Time  `json:"data_criacao"`
+    DataAprovacao   *time.Time `json:"data_aprovacao,omitempty"`
+}
+```
+
+---
+
+## 🔌 COMUNICAÇÃO ENTRE DOMÍNIOS
+
+### Regra: Domínios NÃO importam outros domínios diretamente
+
+**❌ ERRADO:**
+```go
+// internal/domain/comercial/service/proposta_service.go
+import "auren-platform/internal/domain/pgrs/models" // ❌ NÃO!
+
+func (s *PropostaService) VincularPGRS(pgrs *models.PGRS) {} // ❌
+```
+
+**✅ CORRETO:**
+```go
+// internal/domain/comercial/service/proposta_service.go
+
+// Usar apenas o ID (primitivo)
+func (s *PropostaService) VincularPGRS(pgrsID uint) error {
+    // ...
+}
+
+// OU usar interface se precisar chamar métodos
+type PGRSService interface {
+    BuscarPorID(ctx context.Context, id uint) (*dto.PGRSResponse, error)
+}
+
+func NewPropostaService(pgrsService PGRSService) *PropostaService {
+    // Injeção de dependência via interface
+}
+```
+
+---
+
+## 🔄 WEBSOCKET REFATORADO
+
+### Hub Genérico (Shared)
+
+```go
+// internal/shared/websocket/hub.go
+package websocket
+
+type Hub struct {
+    clients    map[*Client]bool
+    register   chan *Client
+    unregister chan *Client
+    broadcast  chan Message
+    handlers   map[string]MessageHandler  // ← Handlers por domínio
+}
+
+type MessageHandler interface {
+    HandleMessage(client *Client, message []byte) error
+}
+
+func NewHub() *Hub {
+    return &Hub{
+        clients:    make(map[*Client]bool),
+        register:   make(chan *Client),
+        unregister: make(chan *Client),
+        broadcast:  make(chan Message),
+        handlers:   make(map[string]MessageHandler),
+    }
+}
+
+// Registrar handler de um domínio
+func (h *Hub) RegisterHandler(prefix string, handler MessageHandler) {
+    h.handlers[prefix] = handler
+}
+
+func (h *Hub) Run() {
+    for {
+        select {
+        case client := <-h.register:
+            h.clients[client] = true
+        case client := <-h.unregister:
+            delete(h.clients, client)
+        case message := <-h.broadcast:
+            h.broadcastMessage(message)
+        }
+    }
+}
+
+func (h *Hub) RouteMessage(client *Client, message []byte) error {
+    var msg Message
+    if err := json.Unmarshal(message, &msg); err != nil {
+        return err
+    }
+    
+    // Extrair prefixo da action (ex: "pgrs.gerar" → "pgrs")
+    prefix := strings.Split(msg.Action, ".")[0]
+    
+    // Rotear para handler do domínio
+    if handler, ok := h.handlers[prefix]; ok {
+        return handler.HandleMessage(client, message)
+    }
+    
+    return fmt.Errorf("handler não encontrado para: %s", prefix)
+}
+```
+
+### Registro no Main
+
+```go
+// cmd/server/main.go
+func main() {
+    // ...
+    
+    // Criar Hub
+    hub := websocket.NewHub()
+    go hub.Run()
+    
+    // Registrar handlers de cada domínio
+    hub.RegisterHandler("pgrs", pgrsWSHandler)
+    hub.RegisterHandler("admin", adminWSHandler)
+    hub.RegisterHandler("comercial", comercialWSHandler)
+    
+    // ...
+}
+```
+
+---
+
+## 📝 MAIN.GO LIMPO
+
+```go
+// cmd/server/main.go
+package main
+
+import (
+    "log"
+    "auren-platform/config"
+    "auren-platform/internal/shared/database"
+    "auren-platform/internal/shared/websocket"
+    "auren-platform/internal/infrastructure/gemini"
+    
+    // Domínios
+    pgrsHandlers "auren-platform/internal/domain/pgrs/handlers"
+    pgrsService "auren-platform/internal/domain/pgrs/service"
+    pgrsRepo "auren-platform/internal/domain/pgrs/repository"
+    
+    adminHandlers "auren-platform/internal/domain/admin/handlers"
+    adminService "auren-platform/internal/domain/admin/service"
+    adminRepo "auren-platform/internal/domain/admin/repository"
+    
+    "github.com/gin-gonic/gin"
+)
+
+func main() {
+    // 1. Carregar configurações
+    cfg := config.Load()
+    
+    // 2. Conectar banco
+    db := database.Connect(cfg.DatabaseURL)
+    database.RunMigrations(db)
+    
+    // 3. Inicializar infraestrutura
+    geminiClient := gemini.NewClient(cfg.GeminiAPIKey)
+    
+    // 4. Inicializar Hub WebSocket
+    hub := websocket.NewHub()
+    go hub.Run()
+    
+    // 5. Inicializar domínios
+    initPGRSDomain(db, geminiClient, hub)
+    initAdminDomain(db, hub)
+    // ... outros domínios
+    
+    // 6. Inicializar servidor HTTP
+    router := gin.Default()
+    router.GET("/ws", func(c *gin.Context) {
+        websocket.ServeWS(hub, c.Writer, c.Request)
+    })
+    
+    // 7. Iniciar servidor
+    log.Fatal(router.Run(":" + cfg.Port))
+}
+
+func initPGRSDomain(db *gorm.DB, gemini *gemini.Client, hub *websocket.Hub) {
+    // Repository
+    pgrsRepository := pgrsRepo.NewPGRSRepository(db)
+    
+    // Services
+    generatorSvc := pgrsService.NewGeneratorService(gemini)
+    docxSvc := pgrsService.NewDOCXService()
+    pgrsSvc := pgrsService.NewPGRSService(pgrsRepository, generatorSvc, docxSvc)
+    
+    // Handlers
+    httpHandler := pgrsHandlers.NewHTTPHandler(pgrsSvc)
+    wsHandler := pgrsHandlers.NewWSHandler(pgrsSvc)
+    
+    // Registrar rotas HTTP
+    router.Group("/api").Use(/* middlewares */)
+    httpHandler.RegisterRoutes(router.Group("/api"))
+    
+    // Registrar handler WebSocket
+    hub.RegisterHandler("pgrs", wsHandler)
+}
+
+// ... outras funções de inicialização
+```
+
+---
+
+## ✅ BENEFÍCIOS DA NOVA ARQUITETURA
+
+### 1. Separação Clara
+- Cada domínio é independente
+- Fácil de entender onde mexer
+- Código organizado por contexto de negócio
+
+### 2. Testabilidade
+```go
+// Testar service isoladamente
+func TestPGRSService_Aprovar(t *testing.T) {
+    // Mock do repository
+    mockRepo := &MockPGRSRepository{}
+    
+    // Service em teste
+    svc := service.NewPGRSService(mockRepo, nil, nil)
+    
+    // Teste isolado
+    err := svc.Aprovar(context.Background(), 1, 1)
+    assert.NoError(t, err)
+}
+```
+
+### 3. Manutenibilidade
+- Arquivo com 100 linhas vs 700 linhas
+- Mudança em PGRS não afeta Comercial
+- Fácil adicionar novos domínios
+
+### 4. Escalabilidade
+- Pode extrair domínio para microserviço
+- Pode ter times diferentes por domínio
+- Pode deployar domínios separadamente (futuro)
+
+### 5. Reutilização
+- `shared/` contém código comum
+- Validadores reutilizáveis
+- Utilitários centralizados
+
+---
+
+## 🚀 PLANO DE MIGRAÇÃO
+
+### Fase 1: Criar Estrutura (1 dia)
+- [ ] Criar pastas de domínios
+- [ ] Mover models para `domain/*/models/`
+- [ ] Criar interfaces de repository
+
+### Fase 2: Refatorar PGRS (2 dias)
+- [ ] Extrair lógica para `pgrs/service/`
+- [ ] Criar repositories
+- [ ] Separar handlers HTTP/WS
+- [ ] Testar isoladamente
+
+### Fase 3: Refatorar Admin (1 dia)
+- [ ] Mover autenticação para `admin/`
+- [ ] Extrair service de usuários
+- [ ] Criar handlers
+
+### Fase 4: Refatorar Outros (1 dia)
+- [ ] Comercial
+- [ ] Financeiro
+
+### Fase 5: Limpar Main (1 dia)
+- [ ] Remover lógica do main.go
+- [ ] Criar funções de inicialização
+- [ ] Testar integração
+
+---
+
+## 📋 CHECKLIST DE MIGRAÇÃO DETALHADO
+
+Vou criar um documento separado com passo a passo completo para migração.
+
+---
+
+**Status:** ✅ ARQUITETURA DEFINIDA  
+**Próximo:** Criar PLANO_MIGRACAO_PASSO_A_PASSO.md

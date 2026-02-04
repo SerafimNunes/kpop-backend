@@ -1,8 +1,8 @@
 package library
 
 import (
+	"auren-platform/internal/infrastructure/gemini"
 	"context"
-	"auren-platform/internal/engine"
 )
 
 const CuradorPrompt = `Você é o Curador de Jurisprudência Ambiental.
@@ -10,10 +10,10 @@ Pesquise e cite decisões judiciais ou pareceres do IBAMA/Estaduais que sustente
 Forneça segurança jurídica para as decisões da engenharia.`
 
 type Curador struct {
-	gemini *engine.GeminiService
+	gemini *gemini.Service
 }
 
-func NewCurador(s *engine.GeminiService) *Curador {
+func NewCurador(s *gemini.Service) *Curador {
 	return &Curador{gemini: s}
 }
 

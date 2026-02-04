@@ -1,0 +1,278 @@
+<div x-data="comercialModule" class="space-y-8 animate-fade-in">
+  <div class="flex flex-col md:flex-row justify-between items-stretch gap-6">
+    <div
+      class="flex-1 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex items-center justify-between"
+    >
+      <div>
+        <h2
+          class="text-3xl font-black text-slate-900 tracking-tighter uppercase italic"
+        >
+          Business <span class="text-emerald-500">Lab</span>
+        </h2>
+        <p
+          class="text-slate-400 font-mono text-[9px] uppercase tracking-[0.3em] mt-2 flex items-center gap-2"
+        >
+          <span
+            class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"
+          ></span>
+          <span x-text="statusMessage"></span>
+        </p>
+      </div>
+      <div class="h-12 w-[1px] bg-slate-100 hidden md:block"></div>
+      <div class="text-right">
+        <span
+          class="text-[9px] font-black text-slate-400 block uppercase tracking-widest mb-1"
+          >Pipeline Ativo</span
+        >
+        <span
+          class="text-3xl font-black text-slate-900 tracking-tighter"
+          x-text="formatCurrency(pipelineValue)"
+        ></span>
+      </div>
+    </div>
+
+    <div
+      class="bg-slate-900 text-white p-6 rounded-[2.5rem] flex items-center gap-6 px-10"
+    >
+      <div class="flex -space-x-3">
+        <div
+          class="w-10 h-10 rounded-full border-4 border-slate-900 bg-emerald-500 flex items-center justify-center text-[10px] font-black italic"
+        >
+          IA
+        </div>
+        <div
+          class="w-10 h-10 rounded-full border-4 border-slate-900 bg-slate-700 flex items-center justify-center text-[10px]"
+        >
+          ⚖️
+        </div>
+      </div>
+      <div>
+        <p
+          class="text-[8px] font-black text-emerald-400 uppercase tracking-widest"
+        >
+          Protocolo de Redação
+        </p>
+        <p class="text-xs font-bold text-slate-300">GHS + Compliance 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-4 space-y-6">
+      <div
+        class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm"
+      >
+        <h3
+          class="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-8 flex items-center gap-3"
+        >
+          <span class="p-2 bg-slate-100 rounded-lg">⚙️</span> Configuração da
+          Proposta
+        </h3>
+
+        <div class="space-y-6">
+          <div>
+            <label class="text-[9px] font-black text-slate-400 uppercase ml-1"
+              >Identificação do Proponente</label
+            >
+            <input
+              type="text"
+              x-model="comercialData.cliente"
+              placeholder="Ex: Grupo Votorantim"
+              class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-emerald-500 transition-all mt-2"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1"
+                >Serviço</label
+              >
+              <select
+                x-model="comercialData.servico"
+                class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold mt-2"
+              >
+                <option value="PGRS">PGRS Profissional</option>
+                <option value="Licenciamento">Licenciamento</option>
+                <option value="Auditoria">Auditoria Lote</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase ml-1"
+                >Prazo Contratual</label
+              >
+              <select
+                x-model="comercialData.prazo"
+                class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold mt-2"
+              >
+                <option value="12 meses">12 meses</option>
+                <option value="24 meses">24 meses</option>
+                <option value="Pontual">Entrega Única</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[9px] font-black text-slate-400 uppercase ml-1"
+              >Diretrizes de Precificação / Detalhes</label
+            >
+            <textarea
+              x-model="comercialData.detalhes"
+              rows="6"
+              class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-xs font-medium focus:ring-2 focus:ring-emerald-500 transition-all mt-2 resize-none"
+              placeholder="Mencione área útil, número de funcionários ou passivos detectados..."
+            ></textarea>
+          </div>
+
+          <button
+            @click="generateDoc('generate_proposal')"
+            :disabled="loading || !comercialData.cliente"
+            class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-30"
+          >
+            <template x-if="loading">
+              <div
+                class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
+              ></div>
+            </template>
+            <span
+              x-text="loading ? 'Engine Redigindo...' : 'Gerar Proposta Técnica'"
+            ></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-emerald-50 p-6 rounded-[2rem] border border-emerald-100">
+        <p
+          class="text-[10px] font-black text-emerald-700 uppercase mb-2 italic"
+        >
+          Sales Insight:
+        </p>
+        <p class="text-[11px] text-emerald-800 leading-relaxed font-medium">
+          O Engine Auren detectou 3 novos editais para
+          <span x-text="comercialData.servico"></span> nesta região. Considere
+          urgência na proposta.
+        </p>
+      </div>
+    </div>
+
+    <div class="lg:col-span-8 flex flex-col gap-6">
+      <div
+        class="bg-slate-200 rounded-[3rem] p-1 shadow-inner flex-1 flex flex-col min-h-[850px] relative"
+      >
+        <div class="absolute top-8 right-8 flex gap-3 z-30">
+          <button
+            @click="generateDoc('generate_contract')"
+            x-show="output && !loading"
+            class="bg-white/90 backdrop-blur text-slate-900 px-5 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-xl border border-slate-100 hover:bg-slate-900 hover:text-white transition-all"
+          >
+            ⚖️ Jurídico (Contrato)
+          </button>
+          <button
+            @click="exportToPDF()"
+            x-show="output && !loading"
+            class="bg-emerald-500 text-white px-5 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-xl shadow-emerald-200 hover:scale-105 transition-all"
+          >
+            📥 Exportar PDF
+          </button>
+        </div>
+
+        <div
+          class="flex-1 overflow-y-auto custom-scrollbar p-12 flex justify-center scroll-smooth"
+        >
+          <div
+            id="auren-doc-canvas"
+            class="w-full max-w-[800px] bg-white shadow-2xl p-16 md:p-24 text-slate-800 text-sm relative min-h-[1100px] rounded-sm transition-all duration-700"
+            :class="loading ? 'opacity-50 grayscale' : 'opacity-100'"
+          >
+            <div
+              x-show="output && !loading"
+              class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none overflow-hidden"
+            >
+              <h2
+                class="text-[150px] font-black rotate-[-45deg] whitespace-nowrap tracking-tighter"
+              >
+                AUREN COMPLIANCE
+              </h2>
+            </div>
+
+            <template x-if="loading">
+              <div
+                class="absolute inset-0 z-30 flex flex-col items-center justify-center p-12"
+              >
+                <div
+                  class="w-20 h-20 border-[6px] border-slate-100 border-t-emerald-500 rounded-full animate-spin mb-8"
+                ></div>
+                <p
+                  class="text-slate-900 font-black uppercase tracking-[0.4em] text-[12px]"
+                  x-text="statusMessage"
+                ></p>
+                <p class="text-slate-400 text-[10px] mt-4 font-mono italic">
+                  Processando camadas de dados regulatórios...
+                </p>
+              </div>
+            </template>
+
+            <template x-if="!output && !loading">
+              <div
+                class="h-full flex flex-col items-center justify-center text-slate-200 py-60 text-center"
+              >
+                <div
+                  class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6"
+                >
+                  <svg
+                    class="w-10 h-10"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-3.682A23.684 23.684 0 015.557 13c0-1.352.114-2.677.332-3.96m14.288 3.96a24.022 24.022 0 01-1.046 6.5m1.633-3.008l1.139-.379m-1.139 0a1.321 1.321 0 01-1.611-1.002c-.144-.567.112-1.136.605-1.428l1.139-.379M14.218 5.719A2.712 2.712 0 0113.822 6M12 2.25V5.25m0 0l-1.032.325M12 5.25l1.032.325"
+                      stroke-width="1.5"
+                    />
+                  </svg>
+                </div>
+                <p
+                  class="font-black uppercase tracking-[0.3em] text-[10px] text-slate-300"
+                >
+                  Aguardando definição para redactar proposta
+                </p>
+              </div>
+            </template>
+
+            <div
+              class="prose prose-slate max-w-none font-serif text-justify selection:bg-emerald-100"
+              x-html="formatDoc(output)"
+            ></div>
+
+            <div
+              x-show="output"
+              class="mt-32 pt-10 border-t-2 border-slate-900 flex justify-between items-end"
+            >
+              <div>
+                <p
+                  class="text-[9px] font-black uppercase text-slate-900 tracking-widest"
+                >
+                  Auren Business Intelligence
+                </p>
+                <p class="text-[8px] font-mono text-slate-400 mt-1 uppercase">
+                  Validado via Digital ID:
+                  <span
+                    x-text="Math.random().toString(36).slice(5).toUpperCase()"
+                  ></span>
+                </p>
+              </div>
+              <div class="text-right">
+                <div
+                  class="w-24 h-12 bg-slate-50 border border-slate-100 rounded flex items-center justify-center mb-2"
+                >
+                  <span class="text-[7px] text-slate-300 uppercase font-black"
+                    >Carimbo Digital</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

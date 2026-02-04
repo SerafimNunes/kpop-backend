@@ -1,0 +1,23 @@
+name: CI - Scaffold
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v4
+
+      - name: Install lint (optional)
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest || true
+
+      - name: Run tests (short)
+        run: go test ./... -short
+
+      - name: Run vet
+        run: go vet ./...
+
+      - name: Lint (non-fatal)
+        run: golangci-lint run || true

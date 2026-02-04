@@ -1,0 +1,1021 @@
+# ✅ CHECKLIST DE IMPLEMENTAÇÃO
+## AUREN PLATFORM v2.0 - PASSO A PASSO EXECUTIVO
+
+**Versão:** 2.0.0  
+**Data:** 01/02/2026  
+**Formato:** Sequencial com checkboxes  
+**Tempo Total Estimado:** 80-100 horas (2-3 semanas)  
+
+---
+
+## 🎯 COMO USAR ESTE CHECKLIST
+
+### Símbolos
+- ⭐⭐⭐ = CRÍTICO (bloqueador)
+- ⭐⭐ = ALTA prioridade
+- ⭐ = MÉDIA prioridade
+- ⏱️ = Tempo estimado
+- 📦 = Entregável
+
+### Regras
+1. Seguir a ordem sequencial
+2. Não pular itens críticos (⭐⭐⭐)
+3. Testar cada item antes de avançar
+4. Marcar [x] quando concluído
+5. Anotar problemas em "Observações"
+
+---
+
+## 📅 FASE 1: PREPARAÇÃO E LIMPEZA (3 dias)
+
+### DIA 1: Limpeza do Código Base
+
+#### [ ] TASK-001: Backup Completo do Projeto Atual ⭐⭐⭐
+**⏱️ Tempo:** 30 minutos
+
+**Passos:**
+1. Parar o servidor (`Ctrl+C` no air)
+2. Criar backup:
+```bash
+cd C:\Users\seraf\
+7z a auren-backup-pre-v2-%date:~-4,4%%date:~-7,2%%date:~-10,2%.7z auren-platform\
+```
+3. Verificar tamanho do arquivo (> 50MB)
+4. Guardar em local seguro
+
+**📦 Entregável:** Arquivo .7z com data
+
+**Observações:**
+```
+Data do backup: ___/___/2026
+Tamanho: _____ MB
+Local: _________________________
+```
+
+---
+
+#### [ ] TASK-002: Remover Módulo de Pesquisa ⭐⭐
+**⏱️ Tempo:** 2 horas
+
+**Arquivos a DELETAR:**
+```
+static/sections/pesquisa.html
+static/js/modules/pesquisa.js
+internal/agents/library/
+```
+
+**Arquivos a MODIFICAR:**
+
+1. **static/js/auren-core.js**
+```javascript
+// REMOVER da linha ~31:
+{ id: "pesquisa", label: "Pesquisa", icon: '...' },
+```
+
+2. **main.go**
+```go
+// COMENTAR ou REMOVER (linha ~80-90):
+// bibliotecaAgent := library.NewBibliotecario(geminiService)
+// radarAgent := library.NewRadarLegislativo(geminiService)
+// agents["biblioteca"] = bibliotecaAgent
+// agents["radar"] = radarAgent
+```
+
+3. **realtime/socket_service.go**
+```go
+// COMENTAR ou REMOVER case:
+// case "process_intelligence_source":
+//     ...
+// case "ai_chat_query":
+//     ...
+```
+
+**Teste:**
+```bash
+go run main.go
+# Deve compilar sem erros
+# Acessar http://localhost:8083
+# Menu "Pesquisa" não deve aparecer
+```
+
+**Observações:**
+```
+Compilou? [ ] Sim [ ] Não
+Menu removido? [ ] Sim [ ] Não
+Erros encontrados:
+_________________________________
+```
+
+---
+
+#### [ ] TASK-003: Desabilitar Hunter e Radar ⭐
+**⏱️ Tempo:** 30 minutos
+
+**main.go - Comentar inicialização:**
+```go
+// COMENTAR (linha ~95-100):
+// hunterAgent := library.NewHunter(geminiService)
+// radarAgent := library.NewRadarLegislativo(geminiService)
+// agents["hunter"] = hunterAgent
+// agents["radar"] = radarAgent
+
+// COMENTAR goroutines (linha ~145-150):
+// go hunterAgent.MonitorarOportunidades()
+// go radarAgent.MonitorarDiarioOficial()
+```
+
+**Teste:**
+```bash
+go run main.go
+# Não deve aparecer:
+# 🏹 [HUNTER] ...
+# 🛰️ [RADAR] ...
+```
+
+**Observações:**
+```
+Logs limpos? [ ] Sim [ ] Não
+```
+
+---
+
+### DIA 2: Migração para Bootstrap 5
+
+#### [ ] TASK-004: Instalar Bootstrap 5.3 ⭐⭐⭐
+**⏱️ Tempo:** 1 hora
+
+**1. Criar `static/css/core.css`:**
+```css
+/* AUREN PLATFORM v2.0 - Core Styles */
+
+:root {
+  /* Cores primárias */
+  --auren-primary: #1a5f7a;
+  --auren-secondary: #2d8f85;
+  --auren-success: #28a745;
+  --auren-warning: #ffc107;
+  --auren-danger: #dc3545;
+  --auren-info: #17a2b8;
+  
+  /* Cores de texto */
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  
+  /* Backgrounds */
+  --bg-light: #f8f9fa;
+  --bg-white: #ffffff;
+  
+  /* Bordas */
+  --border-color: #dee2e6;
+  --border-radius: 0.375rem;
+  
+  /* Sombras */
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+/* Reset global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--bg-light);
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--auren-primary);
+  margin-bottom: 1rem;
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+/* Cards customizados */
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  background-color: var(--bg-light);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+/* Botões personalizados */
+.btn {
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--auren-primary);
+  border-color: var(--auren-primary);
+}
+
+.btn-primary:hover {
+  background-color: #144a5e;
+  border-color: #144a5e;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+/* Forms */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--auren-primary);
+  box-shadow: 0 0 0 0.25rem rgba(26, 95, 122, 0.25);
+}
+
+/* Tables */
+.table-hover tbody tr:hover {
+  background-color: rgba(26, 95, 122, 0.05);
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+/* Navbar (se houver) */
+.navbar {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Wizard Steps */
+.wizard-step {
+  display: none;
+}
+
+.wizard-step.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Progress bar customizado */
+.progress {
+  height: 1.5rem;
+  background-color: var(--bg-light);
+}
+
+.progress-bar {
+  background-color: var(--auren-primary);
+  transition: width 0.6s ease;
+}
+
+/* Loading spinner */
+.spinner-border-auren {
+  color: var(--auren-primary);
+}
+
+/* Utilities */
+.text-auren-primary { color: var(--auren-primary) !important; }
+.text-auren-secondary { color: var(--auren-secondary) !important; }
+.bg-auren-primary { background-color: var(--auren-primary) !important; }
+.bg-auren-secondary { background-color: var(--auren-secondary) !important; }
+
+/* Responsividade */
+@media (max-width: 768px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+}
+```
+
+**2. Atualizar `static/auren.html` (shell principal):**
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auren Platform v2.0</title>
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  
+  <!-- Core CSS -->
+  <link href="/css/core.css" rel="stylesheet">
+</head>
+<body>
+  <div id="app" x-data="aurenPlatform()" x-init="init()">
+    <!-- Conteúdo aqui -->
+  </div>
+  
+  <!-- Bootstrap 5.3 JS Bundle (inclui Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Alpine.js (mínimo) -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- App JS -->
+  <script src="/js/auren-core.js"></script>
+</body>
+</html>
+```
+
+**Teste:**
+```bash
+# Abrir http://localhost:8083
+# Inspecionar (F12)
+# Console não deve ter erros de CSS
+# Elementos devem ter estilos Bootstrap
+```
+
+**Observações:**
+```
+Bootstrap carregado? [ ] Sim [ ] Não
+Core.css aplicado? [ ] Sim [ ] Não
+Sem erros 404? [ ] Sim [ ] Não
+```
+
+---
+
+#### [ ] TASK-005: Migrar Componentes para Bootstrap ⭐⭐
+**⏱️ Tempo:** 3 horas
+
+**Componentes a migrar:**
+
+1. **Dashboard** (`static/sections/dashboard.html`)
+2. **Engenharia** (`static/sections/engenharia.html`)
+3. **Comercial** (`static/sections/comercial.html`)
+4. **Financeiro** (`static/sections/financeiro.html`)
+
+**Exemplo de migração (Dashboard):**
+
+**Antes (Tailwind):**
+```html
+<div class="bg-white rounded-lg shadow p-6">
+  <h3 class="text-lg font-semibold mb-4">PGRS Ativos</h3>
+  <p class="text-3xl font-bold text-blue-600">12</p>
+</div>
+```
+
+**Depois (Bootstrap):**
+```html
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">PGRS Ativos</h5>
+    <p class="display-4 text-auren-primary fw-bold">12</p>
+  </div>
+</div>
+```
+
+**Classe Equivalente (referência):**
+
+| Tailwind | Bootstrap 5 |
+|----------|-------------|
+| `bg-white` | `bg-white` |
+| `rounded-lg` | `rounded` |
+| `shadow` | `shadow` ou `.card` |
+| `p-6` | `p-3` ou `p-4` |
+| `text-lg` | `fs-5` |
+| `font-semibold` | `fw-semibold` |
+| `mb-4` | `mb-3` |
+| `text-3xl` | `display-4` |
+| `font-bold` | `fw-bold` |
+| `text-blue-600` | `text-primary` |
+| `flex` | `d-flex` |
+| `items-center` | `align-items-center` |
+| `justify-between` | `justify-content-between` |
+| `grid grid-cols-2` | `row`+`col-md-6` |
+| `hidden` | `d-none` |
+| `block` | `d-block` |
+
+**Teste cada seção:**
+```bash
+# Navegar por cada módulo
+# Verificar layout
+# Testar responsividade (F12 > Device toolbar)
+```
+
+**Observações:**
+```
+Dashboard migrado? [ ] Sim [ ] Não
+Engenharia migrado? [ ] Sim [ ] Não
+Comercial migrado? [ ] Sim [ ] Não
+Financeiro migrado? [ ] Sim [ ] Não
+Layout quebrado? _________________
+```
+
+---
+
+### DIA 3: Simplificar Dashboard
+
+#### [ ] TASK-006: Criar Dashboard Simplificado ⭐⭐
+**⏱️ Tempo:** 4 horas
+
+**Substituir `static/sections/dashboard.html` por:**
+
+```html
+<div class="container-fluid py-4" x-data="dashboardModule()">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="mb-0">Dashboard</h2>
+      <p class="text-muted">Visão geral do sistema</p>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary" onclick="window.location.href='#engenharia'">
+        <i class="bi bi-plus-circle"></i> Novo PGRS
+      </button>
+    </div>
+  </div>
+  
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <!-- PGRS Ativos -->
+    <div class="col-md-3">
+      <div class="card border-primary">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1">PGRS Ativos</p>
+              <h3 class="mb-0" x-text="kpis.ativos">0</h3>
+            </div>
+            <div class="text-primary">
+              <i class="bi bi-file-earmark-text fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- PGRS Pendentes -->
+    <div class="col-md-3">
+      <div class="card border-warning">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1">Aguardando Revisão</p>
+              <h3 class="mb-0" x-text="kpis.pendentes">0</h3>
+            </div>
+            <div class="text-warning">
+              <i class="bi bi-clock-history fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- PGRS Concluídos -->
+    <div class="col-md-3">
+      <div class="card border-success">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1">Concluídos (mês)</p>
+              <h3 class="mb-0" x-text="kpis.concluidos">0</h3>
+            </div>
+            <div class="text-success">
+              <i class="bi bi-check-circle fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Taxa de Aprovação -->
+    <div class="col-md-3">
+      <div class="card border-info">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-1">Taxa de Aprovação</p>
+              <h3 class="mb-0">
+                <span x-text="kpis.taxaAprovacao">0</span>%
+              </h3>
+            </div>
+            <div class="text-info">
+              <i class="bi bi-graph-up fs-1"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Receita Mensal -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-currency-dollar"></i> Receita Mensal
+        </div>
+        <div class="card-body">
+          <h3 class="text-success mb-3" x-text="formatarMoeda(receitaMensal)">R$ 0,00</h3>
+          <small class="text-muted">
+            <i class="bi bi-arrow-up"></i> 
+            <span x-text="variacao">0</span>% vs mês anterior
+          </small>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Alertas de Vencimento -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-exclamation-triangle"></i> Alertas de Vencimento
+        </div>
+        <div class="card-body">
+          <div x-show="alertas.length === 0" class="text-center text-muted py-4">
+            <i class="bi bi-check-circle fs-1"></i>
+            <p class="mb-0 mt-2">Nenhum alerta no momento</p>
+          </div>
+          
+          <div class="list-group" x-show="alertas.length > 0">
+            <template x-for="alerta in alertas" :key="alerta.id">
+              <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="bi bi-circle-fill" 
+                       :class="alerta.criticidade === 'CRITICA' ? 'text-danger' : 'text-warning'"></i>
+                    <strong x-text="alerta.numero"></strong> - 
+                    <span x-text="alerta.empresa"></span>
+                  </div>
+                  <small class="text-muted">
+                    Vence em <strong x-text="alerta.dias"></strong> dias
+                  </small>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Últimas Atividades -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-activity"></i> Últimas Atividades
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>PGRS</th>
+                  <th>Empresa</th>
+                  <th>Ação</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="ativ in atividades" :key="ativ.id">
+                  <tr>
+                    <td><strong x-text="ativ.numero"></strong></td>
+                    <td x-text="ativ.empresa"></td>
+                    <td x-text="ativ.acao"></td>
+                    <td x-text="formatarData(ativ.data)"></td>
+                    <td>
+                      <span class="badge" 
+                            :class="getBadgeClass(ativ.status)" 
+                            x-text="ativ.status"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function dashboardModule() {
+  return {
+    kpis: {
+      ativos: 0,
+      pendentes: 0,
+      concluidos: 0,
+      taxaAprovacao: 0
+    },
+    receitaMensal: 0,
+    variacao: 0,
+    alertas: [],
+    atividades: [],
+    
+    init() {
+      this.carregarDados();
+      
+      // Atualizar a cada 30s
+      setInterval(() => this.carregarDados(), 30000);
+    },
+    
+    async carregarDados() {
+      try {
+        const response = await fetch('/api/dashboard/kpis');
+        const data = await response.json();
+        
+        this.kpis = data.kpis;
+        this.receitaMensal = data.receita_mensal;
+        this.variacao = data.variacao;
+        this.alertas = data.alertas || [];
+        this.atividades = data.atividades || [];
+      } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+      }
+    },
+    
+    formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(valor);
+    },
+    
+    formatarData(data) {
+      return new Date(data).toLocaleString('pt-BR');
+    },
+    
+    getBadgeClass(status) {
+      const classes = {
+        'RASCUNHO': 'bg-secondary',
+        'EM_GERACAO': 'bg-info',
+        'AGUARDANDO_REVISAO': 'bg-warning',
+        'APROVADO': 'bg-success'
+      };
+      return classes[status] || 'bg-light';
+    }
+  };
+}
+</script>
+```
+
+**Backend - Criar handler `/api/dashboard/kpis`:**
+
+```go
+// internal/handlers/dashboard.go
+package handlers
+
+import (
+    "auren-platform/db"
+    "github.com/gin-gonic/gin"
+    "time"
+)
+
+func HandleDashboardKPIs(c *gin.Context) {
+    var ativos, pendentes, concluidos int64
+    
+    // PGRS Ativos
+    db.DB.Model(&db.PGRS{}).
+        Where("status NOT IN ?", []string{"ARQUIVADO", "REJEITADO"}).
+        Count(&ativos)
+    
+    // Pendentes de Revisão
+    db.DB.Model(&db.PGRS{}).
+        Where("status = ?", "AGUARDANDO_REVISAO").
+        Count(&pendentes)
+    
+    // Concluídos no mês
+    inicioMes := time.Now().AddDate(0, 0, -time.Now().Day()+1)
+    db.DB.Model(&db.PGRS{}).
+        Where("status = ? AND updated_at >= ?", "APROVADO", inicioMes).
+        Count(&concluidos)
+    
+    // Taxa de aprovação (últimos 30 dias)
+    var total, aprovados int64
+    trintaDiasAtras := time.Now().AddDate(0, 0, -30)
+    
+    db.DB.Model(&db.PGRS{}).
+        Where("created_at >= ?", trintaDiasAtras).
+        Count(&total)
+    
+    db.DB.Model(&db.PGRS{}).
+        Where("status = ? AND created_at >= ?", "APROVADO", trintaDiasAtras).
+        Count(&aprovados)
+    
+    taxaAprovacao := 0.0
+    if total > 0 {
+        taxaAprovacao = float64(aprovados) / float64(total) * 100
+    }
+    
+    // Receita mensal (placeholder - ajustar conforme necessário)
+    var receitaMensal float64
+    db.DB.Model(&db.LancamentoFinanceiro{}).
+        Select("COALESCE(SUM(amount), 0)").
+        Where("type = 'entrada' AND EXTRACT(MONTH FROM date) = ?", time.Now().Month()).
+        Scan(&receitaMensal)
+    
+    c.JSON(200, gin.H{
+        "kpis": gin.H{
+            "ativos": ativos,
+            "pendentes": pendentes,
+            "concluidos": concluidos,
+            "taxaAprovacao": int(taxaAprovacao),
+        },
+        "receita_mensal": receitaMensal,
+        "variacao": 0, // TODO: Calcular variação
+        "alertas": []interface{}{}, // TODO: Implementar alertas
+        "atividades": []interface{}{}, // TODO: Implementar atividades
+    })
+}
+```
+
+**Registrar rota em `main.go`:**
+```go
+// Adicionar após outras rotas
+router.GET("/api/dashboard/kpis", handlers.HandleDashboardKPIs)
+```
+
+**Teste:**
+```bash
+# Abrir dashboard
+# Verificar se KPIs aparecem
+# Números devem ser dinâmicos
+```
+
+**Observações:**
+```
+KPIs funcionando? [ ] Sim [ ] Não
+API respondendo? [ ] Sim [ ] Não
+Erros:
+_________________________________
+```
+
+---
+
+## 📅 FASE 2: PGRS CORE (7 dias)
+
+### DIA 4-5: Wizard de 5 Passos
+
+#### [ ] TASK-007: Criar Estrutura do Wizard ⭐⭐⭐
+**⏱️ Tempo:** 6 horas
+
+**Criar `static/js/modules/wizard-pgrs.js`:**
+
+```javascript
+function wizardPGRS() {
+  return {
+    currentStep: 1,
+    totalSteps: 5,
+    
+    // Dados do formulário
+    empresa: {
+      razao_social: '',
+      cnpj: '',
+      cnae: '',
+      endereco: '',
+      cep: '',
+      municipio: '',
+      estado: '',
+      responsavel_legal: '',
+      telefone: '',
+      email: ''
+    },
+    
+    unidade: {
+      nome: '',
+      tipo_operacao: '',
+      numero_funcionarios: null,
+      area_total_m2: null,
+      turnos_operacao: 1,
+      responsavel_tecnico: '',
+      registro_profissional: '',
+      email_responsavel: ''
+    },
+    
+    residuos: [],
+    
+    operacional: {
+      segregacao: { como: '', onde: '', responsavel: '' },
+      acondicionamento: { recipientes: '', identificacao: '' },
+      armazenamento: { area_dedicada: '', capacidade: '', condicoes: '' },
+      transporte: { interno: '', externo: '' },
+      treinamento: { frequencia: '', conteudo: '', registro: '' }
+    },
+    
+    // Controles
+    saving: false,
+    errors: {},
+    
+    init() {
+      this.carregarDraft();
+      this.iniciarAutoSave();
+    },
+    
+    // Navegação
+    proximoPasso() {
+      if (this.validarPasso(this.currentStep)) {
+        this.currentStep++;
+        this.salvarDraft();
+        window.scrollTo(0, 0);
+      }
+    },
+    
+    passoAnterior() {
+      if (this.currentStep > 1) {
+        this.currentStep--;
+        window.scrollTo(0, 0);
+      }
+    },
+    
+    irParaPasso(step) {
+      if (step <= this.currentStep || this.validarPasso(this.currentStep)) {
+        this.currentStep = step;
+        window.scrollTo(0, 0);
+      }
+    },
+    
+    // Validações
+    validarPasso(step) {
+      this.errors = {};
+      
+      switch(step) {
+        case 1:
+          if (!this.empresa.razao_social) {
+            this.errors.razao_social = 'Razão Social é obrigatória';
+          }
+          if (!this.validarCNPJ(this.empresa.cnpj)) {
+            this.errors.cnpj = 'CNPJ inválido';
+          }
+          break;
+          
+        case 2:
+          if (!this.unidade.nome) {
+            this.errors.unidade_nome = 'Nome da unidade é obrigatório';
+          }
+          if (!this.unidade.responsavel_tecnico) {
+            this.errors.responsavel_tecnico = 'Responsável Técnico é obrigatório';
+          }
+          break;
+          
+        case 3:
+          if (this.residuos.length === 0) {
+            this.errors.residuos = 'Adicione pelo menos um resíduo';
+          }
+          break;
+      }
+      
+      return Object.keys(this.errors).length === 0;
+    },
+    
+    validarCNPJ(cnpj) {
+      cnpj = cnpj.replace(/[^\d]/g, '');
+      if (cnpj.length !== 14) return false;
+      
+      // Algoritmo de validação completo
+      // ... (implementar)
+      
+      return true;
+    },
+    
+    // Resíduos
+    adicionarResiduo() {
+      this.residuos.push({
+        nome: '',
+        classe: '',
+        quantidade_mensal_kg: null,
+        destinacao: '',
+        observacoes: ''
+      });
+    },
+    
+    removerResiduo(index) {
+      this.residuos.splice(index, 1);
+    },
+    
+    // Auto-save
+    iniciarAutoSave() {
+      setInterval(() => {
+        this.salvarDraft();
+      }, 30000); // A cada 30s
+    },
+    
+    salvarDraft() {
+      const draft = {
+        empresa: this.empresa,
+        unidade: this.unidade,
+        residuos: this.residuos,
+        operacional: this.operacional,
+        currentStep: this.currentStep
+      };
+      
+      localStorage.setItem('pgrs_draft', JSON.stringify(draft));
+    },
+    
+    carregarDraft() {
+      const draft = localStorage.getItem('pgrs_draft');
+      if (draft) {
+        const data = JSON.parse(draft);
+        this.empresa = data.empresa || this.empresa;
+        this.unidade = data.unidade || this.unidade;
+        this.residuos = data.residuos || [];
+        this.operacional = data.operacional || this.operacional;
+        this.currentStep = data.currentStep || 1;
+      }
+    },
+    
+    limparDraft() {
+      localStorage.removeItem('pgrs_draft');
+    },
+    
+    // Submissão
+    async gerarPGRS() {
+      this.saving = true;
+      
+      const dados = {
+        empresa: this.empresa,
+        unidade: this.unidade,
+        inventario: this.residuos,
+        operacional: this.operacional
+      };
+      
+      try {
+        const response = await fetch('/api/pgrs/gerar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados)
+        });
+        
+        if (!response.ok) throw new Error('Erro ao gerar PGRS');
+        
+        const { pgrs_id } = await response.json();
+        
+        this.limparDraft();
+        window.location.href = `#engenharia/pgrs/${pgrs_id}`;
+        
+      } catch (error) {
+        alert('Erro ao gerar PGRS: ' + error.message);
+      } finally {
+        this.saving = false;
+      }
+    },
+    
+    // Utilidades
+    formatarCNPJ(valor) {
+      valor = valor.replace(/\D/g, '');
+      return valor.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    },
+    
+    progresso() {
+      return (this.currentStep / this.totalSteps) * 100;
+    }
+  };
+}
+```
+
+**📦 Entregável:** Wizard funcional com navegação
+
+**Observações:**
+```
+Wizard criado? [ ] Sim [ ] Não
+Auto-save funcionando? [ ] Sim [ ] Não
+Validações ok? [ ] Sim [ ] Não
+```
+
+---
+
+**Continuo com mais tarefas ou você quer revisar até aqui?** 
+
+Ainda tenho:
+- TASK-008 a TASK-040 (restante da Fase 2, 3, 4)
+- Documento de PROMPTS_IA.md
+- Documento de WIREFRAMES.md
+- Documento de CASOS_USO.md
+
+**Status atual:**
+✅ PROJETO_EXECUTIVO.md  
+✅ ESPECIFICACAO_FUNCIONAL.md (parcial)  
+✅ MODELO_DADOS.md  
+🔄 CHECKLIST_IMPLEMENTACAO.md (em andamento - 7 de ~40 tarefas)  
+
+Posso continuar? 🚀

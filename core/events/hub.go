@@ -1,4 +1,4 @@
-package realtime
+package events
 
 import (
 	"context"
@@ -18,13 +18,13 @@ type Client struct {
 	Conn chan Message
 }
 
-// Hub centraliza a comunicação em tempo real e o controle da análise ativa
+// Hub centraliza a comunicação em tempo real
 type Hub struct {
 	Clients             map[string]*Client
 	Broadcast           chan Message
 	Register            chan *Client
 	Unregister          chan *Client
-	ActiveSessionCancel context.CancelFunc // Controle da análise de IA em curso
+	ActiveSessionCancel context.CancelFunc
 	Mu                  sync.RWMutex
 }
 
@@ -58,7 +58,6 @@ func (h *Hub) Run() {
 
 		case m := <-h.Broadcast:
 			h.Mu.RLock()
-			// Logs de broadcast para rastreabilidade técnica (Regra 0. Princípios)
 			if m.Type == "error" {
 				log.Printf("⚠️ [HUB-BROADCAST] Alerta enviado: %v", m.Payload)
 			}
@@ -67,11 +66,13 @@ func (h *Hub) Run() {
 				select {
 				case c.Conn <- m:
 				default:
-					log.Printf("清理 [HUB] Removendo cliente lento/travado: %s", id)
+					log.Printf("🧹 [HUB] Removendo cliente lento/travado: %s", id)
+					h.Mu.RUnlock() // Unlock before lock to avoid deadlock
 					h.Mu.Lock()
 					delete(h.Clients, id)
 					close(c.Conn)
 					h.Mu.Unlock()
+					h.Mu.RLock() // Re-lock for the loop
 				}
 			}
 			h.Mu.RUnlock()

@@ -1,111 +1,143 @@
 document.addEventListener("alpine:init", () => {
   Alpine.data("vistoriaModule", () => ({
+    // --- STATE ---
     generating: false,
-    statusMessage: "",
+    progress: 0,
+    statusMessage: "Aguardando Evidência",
     pgrsData: { setor: "", observacoes: "" },
     checklist: { segregacao: false, armazenamento: false, identificacao: false, vazamento: false },
+    previousInspections: [], // Novo estado para vistorias anteriores
+    
+    // --- STATIC DATA ---
     checklistItems: {
-      segregacao: "Segregação na Fonte (NBR 10004)",
-      armazenamento: "Armazenamento Coberto/Impermeável",
-      identificacao: "Rotulagem (GHS/NBR 7500)",
-      vazamento: "Kits de Mitigação/Contenção"
+      segregacao: "Segregação (NBR 10004)",
+      armazenamento: "Área Coberta/Impermeável",
+      identificacao: "Rotulagem GHS/NBR 7500",
+      vazamento: "Kits de Contenção"
     },
 
+    // --- LIFECYCLE & LISTENERS ---
     init() {
-      console.log("[VISTORIA-CORE] Ready.");
+      console.log("🛠️ [VISTORIA-CORE] Operacional.");
       this.createFileInput();
+      this.sendCommand('vistoria_request_sync'); // Solicita dados iniciais
 
-      window.addEventListener("capture-photo", () => this.handleMediaDispatch("image/*"));
-      window.addEventListener("record-video", () => this.handleMediaDispatch("video/*"));
-      window.addEventListener("start-audio", () => this.handleMediaDispatch("audio/*"));
-
-      window.addEventListener("socket:inspection_analysis_result", (event) => {
-        localStorage.setItem("last_inspection_data", JSON.stringify(event.detail));
-        window.dispatchEvent(new CustomEvent("auren-sync"));
-        this.statusMessage = "Análise concluída. Dados enviados ao PGRS.";
+      // Listener para dados iniciais
+      window.addEventListener("socket:vistoria_init", (e) => {
+        if (e.detail && e.detail.inspections) {
+          this.previousInspections = e.detail.inspections;
+        }
+      });
+      
+      // Listener para resultado final da consolidação
+      window.addEventListener("socket:inspection_analysis_result", (e) => {
         this.generating = false;
-        alert("Vistoria finalizada com sucesso!");
+        this.progress = 100;
+        this.statusMessage = "Auditoria Consolidada!";
+        this.pgrsData.observacoes = e.detail.observacoes_consolidadas;
+        localStorage.setItem("last_inspection_data", JSON.stringify(e.detail));
+        this.addNotification("Auditoria Digital Consolidada com Sucesso!", "success");
+        this.sendCommand('vistoria_request_sync'); // Re-sincroniza a lista
       });
 
-      // Listener for status messages from backend
-      window.addEventListener("socket:status", (event) => {
-        this.statusMessage = event.detail;
+      // Listener para insights de mídia (análise de imagem/vídeo)
+      window.addEventListener("socket:technical_insight", (e) => {
+        this.statusMessage = "Análise de Mídia Concluída.";
+        this.pgrsData.observacoes += `\n[IA Media Insight]: ${e.detail}`;
+        this.progress = 100;
+        setTimeout(() => { if(!this.generating) this.progress = 0; }, 2000);
       });
-      window.addEventListener("socket:error", (event) => {
-        this.statusMessage = `Erro: ${event.detail}`;
-        this.generating = false;
-        alert(`Erro do Backend: ${event.detail}`);
+
+      // Listener para atualizações de status durante o processamento
+      window.addEventListener("socket:status", (e) => {
+        if(this.generating) {
+          this.statusMessage = e.detail;
+          this.progress = Math.min(95, this.progress + 5);
+        }
       });
-       window.addEventListener("socket:technical_insight", (event) => {
+      
+      // Listener para erros
+      window.addEventListener("socket:error", (e) => {
         this.generating = false;
-        this.statusMessage = "Evidência analisada pela IA.";
+        this.progress = 0;
+        this.statusMessage = "Erro na Operação";
+        this.addNotification(e.detail, "error");
       });
     },
 
+    // --- UI & FILE HANDLING ---
     createFileInput() {
+      if (document.getElementById("media-capture-input")) return;
       const input = document.createElement("input");
       input.type = "file";
-      input.style.display = "none";
       input.id = "media-capture-input";
-      input.addEventListener("change", (event) => this.handleFileUpload(event));
+      input.className = "hidden";
+      input.addEventListener("change", (e) => this.handleFileUpload(e));
       document.body.appendChild(input);
     },
 
-    handleMediaDispatch(acceptType) {
-      if (!window.AurenSocket || window.AurenSocket.readyState !== WebSocket.OPEN) {
-        alert("⚠️ Conexão perdida com o Core.");
+    handleMediaDispatch(type) {
+      if (!this.pgrsData.setor) {
+        this.addNotification("Informe o Setor antes de enviar a evidência.", "error");
         return;
       }
-      const fileInput = document.getElementById("media-capture-input");
-      fileInput.accept = acceptType;
-      fileInput.click();
+      document.getElementById("media-capture-input").accept = type;
+      document.getElementById("media-capture-input").click();
     },
 
-    handleFileUpload(event) {
-      const file = event.target.files[0];
+    handleFileUpload(e) {
+      const file = e.target.files[0];
       if (!file) return;
 
       this.generating = true;
-      this.statusMessage = `Enviando ${file.type}...`;
+      this.progress = 10;
+      this.statusMessage = "Processando arquivo...";
 
+      // 1. Envia o cabeçalho JSON via sendCommand
+      this.sendCommand("media_capture_start", {
+        mimeType: file.type,
+        setor: this.pgrsData.setor,
+        fileName: file.name
+      });
+      
+      // 2. Envia o binário diretamente pelo socket
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const fileData = e.target.result;
-        
-        // 1. Send metadata message
-        window.AurenSocket.send(JSON.stringify({
-          action: "media_capture_start",
-          vistoriaID: 1, // Hardcoded for now, should be dynamic
-          mimeType: file.type
-        }));
-
-        // 2. Send binary data
-        window.AurenSocket.send(fileData);
+      reader.onload = (event) => {
+        if (window.AurenSocket && window.AurenSocket.readyState === WebSocket.OPEN) {
+          window.AurenSocket.send(event.target.result);
+          this.statusMessage = "Analisando evidência com Visão Computacional...";
+          this.progress = 40;
+        } else {
+          this.addNotification("Conexão perdida ao enviar arquivo.", "error");
+          this.generating = false;
+        }
       };
       reader.readAsArrayBuffer(file);
-      
-      // Reset file input value to allow capturing the same file again
-      event.target.value = "";
+      e.target.value = ""; // Reseta o input
     },
 
-    async consolidateAnalysis() {
-      if (!this.pgrsData.setor || this.pgrsData.observacoes.length < 10) {
-        alert("Obrigatório: Setor e Relato Técnico detalhado.");
-        return;
+    // --- ACTIONS ---
+    consolidateAnalysis() {
+      if (!this.pgrsData.setor) {
+          this.addNotification("Informe o Setor ou Ponto de Geração.", "error");
+          return;
       }
-
+      
       this.generating = true;
-      this.statusMessage = "IA Auren auditando evidências...";
-
-      window.AurenSocket.send(JSON.stringify({
-        action: "consolidate_inspection",
-        payload: {
-          setor: this.pgrsData.setor,
-          observacoes: this.pgrsData.observacoes,
-          checklist: this.checklist,
-          timestamp: new Date().toISOString()
-        }
-      }));
+      this.progress = 10;
+      this.statusMessage = "Consolidando Laudo Técnico...";
+      
+      this.sendCommand("consolidate_inspection", {
+        ...this.pgrsData,
+        checklist: this.checklist,
+        timestamp: new Date().toISOString()
+      });
+    },
+    
+    // --- HELPERS ---
+    addNotification(text, type) {
+      const global = Alpine.store('auren');
+      if (global) global.addNotification(text, type);
     }
   }));
 });

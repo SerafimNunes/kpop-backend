@@ -1,174 +1,103 @@
 /**
- * Auren Platform - UI Theme v3.0 (Soft Engineering Edition)
- * Foco: Clareza, Performance Visual e Confiabilidade Técnica.
+ * Auren Platform - UI Theme v1.4 (Clean Industrial)
+ * Single Source of Truth conforme Manifesto.
  */
 
-[x-cloak] {
-  display: none !important;
-}
+[x-cloak] { display: none !important; }
 
 :root {
-  --primary-emerald: #10b981;
-  --primary-dark: #059669;
-  --bg-main: #f8fafc;
-  --text-base: #1e293b;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
+  --primary-emerald: #00B894;
+  --primary-dark: #00A383;
+  --bg-main: #F4F7F6; /* Cinza Gelo Manifesto */
+  --text-base: #2D3436; /* Grafite Técnico */
+  --text-muted: #636E72;
+  --border-light: #E2E8F0;
 }
 
 body {
   background-color: var(--bg-main);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%);
   color: var(--text-base);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   margin: 0;
   min-height: 100vh;
 }
 
-.font-mono {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-}
+.font-mono { font-family: "JetBrains Mono", monospace; }
 
-/* Glassmorphism Soft Mode */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05), 
-    0 2px 4px -2px rgba(0, 0, 0, 0.03);
-  border-radius: 16px;
-}
-
-/* Sidebar Navigation Refatorada */
+/* Componentes de Interface Clean Industrial */
 .sidebar-btn {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-muted);
-  margin: 2px 0;
-  border-left: 3px solid transparent;
+  margin-bottom: 4px;
 }
 
 .sidebar-btn:hover {
-  background: rgba(16, 185, 129, 0.06);
-  color: var(--primary-dark);
+  background: rgba(0, 184, 148, 0.05);
+  color: var(--primary-emerald);
 }
 
 .sidebar-btn.active {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--primary-dark);
-  border-left-color: var(--primary-emerald);
-  font-weight: 600;
+  background: rgba(0, 184, 148, 0.1);
+  color: var(--primary-emerald);
+  font-weight: 700;
 }
 
-/* Inputs Técnicos */
-.input-field {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 14px;
-  color: var(--text-base);
-  width: 100%;
-  transition: all 0.2s ease;
+/* Painéis de Vidro Suave (Glassmorphism) */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
 }
 
-.input-field:focus {
-  border-color: var(--primary-emerald);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-}
-
-.input-field::placeholder {
-  color: #94a3b8;
-}
-
-/* Cards de Estatística Soft */
+/* Estatísticas e Cards */
 .stat-card {
   background: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08);
-  border-color: rgba(16, 185, 129, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-emerald);
 }
 
-/* Botões de Ação Profissionais */
-.btn-primary {
-  background: #10b981;
+/* Labels Técnicas */
+.label-tech {
+  font-size: 10px;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* Botões */
+.btn-auren {
+  background: var(--primary-emerald);
   color: white;
   font-weight: 600;
   border-radius: 8px;
-  padding: 10px 20px;
-  transition: all 0.2s;
+  padding: 12px 24px;
   border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  transition: all 0.2s;
 }
 
-.btn-primary:hover {
-  background: #059669;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-  transform: translateY(-1px);
+.btn-auren:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 8px 16px -4px rgba(0, 184, 148, 0.3);
 }
 
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Scrollbar para Ambiente Soft */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #DFE6E9;
   border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Labels e Títulos */
-.section-title {
-  color: #0f172a;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-}
-
-.label-tech {
-  font-size: 11px;
-  font-family: "JetBrains Mono", monospace;
-  text-transform: uppercase;
-  color: #64748b;
-  letter-spacing: 0.05em;
-}
-
-/* Animações de Transição */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
 }

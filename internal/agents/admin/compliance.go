@@ -1,23 +1,31 @@
 package admin
 
 import (
+	"auren-platform/internal/infrastructure/gemini"
+	"cloud.google.com/go/vertexai/genai"
 	"context"
-	"auren-platform/internal/engine"
+	"fmt"
 )
 
-const CompliancePrompt = `Você é o Analista de Compliance Contratual Sênior da Auren.
-Sua missão é blindar a empresa juridicamente. Analise minutas contratuais (ex: Padrão Vale, Petrobras).
-Identifique cláusulas leoninas, multas desproporcionais e riscos de responsabilidade civil.
-Seja direto: Aponte o risco e sugira a redação segura.`
-
+// Compliance blinda a empresa contra riscos jurídicos em contratos complexos
 type Compliance struct {
-	gemini *engine.GeminiService
+	gemini *gemini.Service
 }
 
-func NewCompliance(s *engine.GeminiService) *Compliance {
+func NewCompliance(s *gemini.Service) *Compliance {
 	return &Compliance{gemini: s}
 }
 
-func (a *Compliance) AnalisarRisco(ctx context.Context, contratoTexto string) (string, error) {
-	return a.gemini.Generate(ctx, nil, CompliancePrompt+"\nCONTRATO:\n"+contratoTexto)
+// AnalisarContrato sincronizado com Handler e Socket
+func (a *Compliance) AnalisarContrato(ctx context.Context, contratoTexto string) (string, error) {
+	systemPrompt := `### ANALISTA DE COMPLIANCE CONTRATUAL SÊNIOR
+Sua missão é blindar a Auren juridicamente. Analise minutas contratuais.
+FOCO: Identificar cláusulas leoninas, multas desproporcionais e riscos de responsabilidade civil.
+FORMATO: Aponte o risco e sugira imediatamente uma redação alternativa segura.`
+
+	parts := []genai.Part{
+		genai.Text(fmt.Sprintf("MINUTA PARA ANÁLISE:\n%s", contratoTexto)),
+	}
+
+	return a.gemini.Generate(ctx, parts, systemPrompt)
 }

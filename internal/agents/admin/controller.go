@@ -1,22 +1,30 @@
 package admin
 
 import (
+	"auren-platform/internal/infrastructure/gemini"
+	"cloud.google.com/go/vertexai/genai"
 	"context"
-	"auren-platform/internal/engine"
+	"fmt"
 )
 
-const ControllerPrompt = `Você é o Controller Financeiro da Auren.
-Monitore o fluxo de caixa, identifique inadimplências e calcule a saúde financeira dos projetos.
-Seja analítico: compare o previsto vs realizado e alerte sobre prejuízos.`
-
+// Controller monitora a saúde financeira e o fluxo dos projetos
 type Controller struct {
-	gemini *engine.GeminiService
+	gemini *gemini.Service
 }
 
-func NewController(s *engine.GeminiService) *Controller {
+func NewController(s *gemini.Service) *Controller {
 	return &Controller{gemini: s}
 }
 
 func (a *Controller) AnalisarFluxo(ctx context.Context, dadosFinanceiros string) (string, error) {
-	return a.gemini.Generate(ctx, nil, ControllerPrompt+"\nDADOS:\n"+dadosFinanceiros)
+	systemPrompt := `### CONTROLLER FINANCEIRO AUREN
+Monitore o fluxo de caixa e calcule a saúde financeira dos projetos.
+COMPARE: Previsto vs Realizado.
+ALERTE: Inadimplências potenciais e margens de lucro abaixo do esperado.`
+
+	parts := []genai.Part{
+		genai.Text(fmt.Sprintf("DADOS FINANCEIROS:\n%s", dadosFinanceiros)),
+	}
+
+	return a.gemini.Generate(ctx, parts, systemPrompt)
 }

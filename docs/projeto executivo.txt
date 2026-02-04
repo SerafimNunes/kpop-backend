@@ -1,0 +1,843 @@
+# 📐 PROJETO EXECUTIVO v2.0
+## AUREN PLATFORM - SISTEMA PROFISSIONAL COM ARQUITETURA DE DOMÍNIOS
+
+**Versão:** 2.0.0 (Arquitetura Refatorada)  
+**Data:** 01/02/2026  
+**Status:** PROJETO EXECUTIVO APROVADO  
+**Arquitetura:** Domain-Driven Design (DDD) + Clean Architecture  
+
+---
+
+## 🎯 SUMÁRIO EXECUTIVO
+
+### Objetivo Principal
+Transformar o Auren Platform em **sistema profissional de classe mundial** para geração de documentos ambientais, reduzindo o tempo de criação de PGRS de **48 horas para 2 horas** (96% de redução).
+
+### Diferencial v2.0
+- ✅ **Arquitetura de Domínios** - Código organizado por contexto de negócio
+- ✅ **Zero God Files** - Nenhum arquivo com mais de 200 linhas
+- ✅ **100% Testável** - Cada domínio isolado e mockável
+- ✅ **Manutenibilidade** - Mudanças localizadas e seguras
+- ✅ **Escalabilidade** - Preparado para microserviços
+
+### Escopo v2.0
+**CORE (Prioridade Máxima):**
+- ✅ Domínio PGRS completo (geração, revisão, aprovação)
+- ✅ Workflow profissional com IA
+- ✅ Geração de DOCX formatado ABNT
+- ✅ Interface moderna Bootstrap 5
+
+**SUPORTE (Prioridade Alta):**
+- ✅ Domínio Admin (usuários, autenticação)
+- ✅ Domínio Comercial (propostas simplificadas)
+- ✅ Domínio Financeiro (lançamentos básicos)
+
+### Não-Escopo (Removidos)
+- ❌ Módulo de Pesquisa/Inteligência
+- ❌ Hunter (Prospecção)
+- ❌ Radar Legislativo
+- ❌ Complexidades desnecessárias
+
+---
+
+## 🏗️ ARQUITETURA DO SISTEMA
+
+### Princípios Arquiteturais
+
+#### 1. Domain-Driven Design (DDD)
+- **Separação por domínio de negócio** (não por tipo técnico)
+- **Cada domínio é independente**
+- **Linguagem ubíqua** (código reflete negócio)
+- **Bounded contexts** (fronteiras claras)
+
+#### 2. Clean Architecture
+- **Dependências apontam para dentro** (domínio não conhece infraestrutura)
+- **Camadas bem definidas** (Models → Repository → Service → Handlers)
+- **Interfaces para abstrair dependências**
+- **Testabilidade** (mock de tudo)
+
+#### 3. SOLID Principles
+- **S**ingle Responsibility - Cada arquivo/função uma responsabilidade
+- **O**pen/Closed - Aberto para extensão, fechado para modificação
+- **L**iskov Substitution - Interfaces substituíveis
+- **I**nterface Segregation - Interfaces específicas
+- **D**ependency Inversion - Depender de abstrações
+
+### Stack Tecnológica
+
+#### Backend
+```
+Linguagem:     Go 1.21+
+Framework:     Gin (HTTP Router)
+WebSocket:     Gorilla WebSocket
+Banco:         PostgreSQL 15+
+ORM:           GORM v2
+IA:            Google Gemini Pro (Vertex AI)
+Documentos:    unioffice (DOCX)
+Email:         go-mail
+Validação:     go-playground/validator
+```
+
+#### Frontend (Mantido)
+```
+Framework:     Bootstrap 5.3
+JavaScript:    Vanilla JS + Alpine.js (mínimo)
+CSS:           Bootstrap + core.css (customizado)
+Icons:         Bootstrap Icons
+```
+
+#### Infraestrutura
+```
+Servidor:      Google Cloud Compute (Free Tier → Produção)
+Banco:         PostgreSQL (local/Cloud SQL)
+Storage:       Local → Google Cloud Storage
+Backup:        Scripts automáticos + Cloud Storage
+SSL:           Let's Encrypt (Certbot)
+Proxy:         Nginx
+```
+
+---
+
+## 📁 ESTRUTURA DE DIRETÓRIOS (Nova Arquitetura)
+
+```
+auren-platform/
+│
+├── cmd/
+│   └── server/
+│       └── main.go                    # ← Entry point LIMPO (60 linhas)
+│
+├── internal/
+│   │
+│   ├── domain/                        # ← DOMÍNIOS (Core Business)
+│   │   │
+│   │   ├── admin/                     # Domínio Administrativo
+│   │   │   ├── models/
+│   │   │   │   ├── usuario.go         # Entidade Usuario
+│   │   │   │   └── session.go         # Entidade Session
+│   │   │   ├── repository/
+│   │   │   │   ├── interfaces.go      # Interface UsuarioRepository
+│   │   │   │   └── usuario_repo.go    # Implementação GORM
+│   │   │   ├── service/
+│   │   │   │   ├── auth_service.go    # Lógica de autenticação
+│   │   │   │   └── usuario_service.go # CRUD de usuários
+│   │   │   ├── handlers/
+│   │   │   │   ├── http_handler.go    # Endpoints REST
+│   │   │   │   └── ws_handler.go      # WebSocket específico
+│   │   │   └── dto/
+│   │   │       ├── login_request.go   # Input
+│   │   │       └── usuario_response.go # Output
+│   │   │
+│   │   ├── pgrs/                      # Domínio PGRS (CORE) ⭐⭐⭐
+│   │   │   ├── models/
+│   │   │   │   ├── pgrs.go            # Entidade principal
+│   │   │   │   ├── versao_pgrs.go     # Versionamento
+│   │   │   │   ├── log_pgrs.go        # Auditoria
+│   │   │   │   ├── gerador.go         # Cliente/Empresa
+│   │   │   │   └── unidade.go         # Estabelecimento
+│   │   │   ├── repository/
+│   │   │   │   ├── interfaces.go      # Contratos
+│   │   │   │   ├── pgrs_repo.go
+│   │   │   │   ├── gerador_repo.go
+│   │   │   │   └── unidade_repo.go
+│   │   │   ├── service/
+│   │   │   │   ├── pgrs_service.go    # Orquestração
+│   │   │   │   ├── generator_service.go # IA (Auditor+Redator)
+│   │   │   │   ├── review_service.go   # Revisão
+│   │   │   │   └── docx_service.go     # Geração DOCX
+│   │   │   ├── handlers/
+│   │   │   │   ├── http_handler.go    # REST API
+│   │   │   │   └── ws_handler.go      # WebSocket do PGRS
+│   │   │   ├── dto/
+│   │   │   │   ├── criar_pgrs_request.go
+│   │   │   │   ├── gerar_pgrs_request.go
+│   │   │   │   └── pgrs_response.go
+│   │   │   └── agents/                # IAs específicas
+│   │   │       ├── auditor.go         # Auditoria de compliance
+│   │   │       └── redator.go         # Geração de texto
+│   │   │
+│   │   ├── comercial/                 # Domínio Comercial
+│   │   │   ├── models/
+│   │   │   │   ├── proposta.go
+│   │   │   │   └── contrato.go
+│   │   │   ├── repository/
+│   │   │   │   ├── interfaces.go
+│   │   │   │   └── proposta_repo.go
+│   │   │   ├── service/
+│   │   │   │   └── proposta_service.go
+│   │   │   ├── handlers/
+│   │   │   │   └── http_handler.go
+│   │   │   └── dto/
+│   │   │       └── proposta_request.go
+│   │   │
+│   │   └── financeiro/                # Domínio Financeiro
+│   │       ├── models/
+│   │       │   └── lancamento.go
+│   │       ├── repository/
+│   │       │   ├── interfaces.go
+│   │       │   └── lancamento_repo.go
+│   │       ├── service/
+│   │       │   └── lancamento_service.go
+│   │       ├── handlers/
+│   │       │   └── http_handler.go
+│   │       └── dto/
+│   │           └── lancamento_request.go
+│   │
+│   ├── shared/                        # Código compartilhado
+│   │   ├── database/
+│   │   │   ├── connection.go          # Conexão GORM
+│   │   │   └── migrations.go          # Auto-migrate
+│   │   ├── websocket/
+│   │   │   ├── hub.go                 # Hub genérico
+│   │   │   ├── client.go              # Cliente WebSocket
+│   │   │   └── message.go             # Estrutura de mensagem
+│   │   ├── middleware/
+│   │   │   ├── auth.go                # JWT validation
+│   │   │   ├── cors.go                # CORS headers
+│   │   │   └── logger.go              # Request logging
+│   │   ├── validator/
+│   │   │   ├── cnpj.go                # Validador CNPJ
+│   │   │   ├── email.go               # Validador Email
+│   │   │   └── validator.go           # Wrapper do validator
+│   │   ├── utils/
+│   │   │   ├── hash.go                # Bcrypt helper
+│   │   │   ├── jwt.go                 # JWT helper
+│   │   │   └── formatter.go           # Formatação (datas, moeda)
+│   │   └── errors/
+│   │       ├── app_error.go           # Erros customizados
+│   │       └── error_codes.go         # Códigos de erro
+│   │
+│   └── infrastructure/                # Integrações externas
+│       ├── gemini/
+│       │   ├── client.go              # Cliente Gemini
+│       │   └── config.go              # Configuração
+│       ├── email/
+│       │   └── smtp_client.go         # Cliente SMTP
+│       └── storage/
+│           └── local_storage.go       # Armazenamento local
+│
+├── config/
+│   ├── config.go                      # Configurações centralizadas
+│   └── env.go                         # Carregamento de .env
+│
+├── migrations/                         # SQL migrations (versionadas)
+│   ├── 001_create_usuarios.sql
+│   ├── 002_create_geradors.sql
+│   ├── 003_create_unidades.sql
+│   ├── 004_create_pgrs.sql
+│   └── ...
+│
+├── scripts/
+│   ├── migrate.sh                     # Rodar migrations
+│   ├── seed.sh                        # Popular dados iniciais
+│   └── backup.sh                      # Backup automático
+│
+├── templates/
+│   └── pgrs_template.docx             # Template ABNT
+│
+├── storage/
+│   ├── documents/                     # DOCX/PDF gerados
+│   └── backups/                       # Backups
+│
+├── static/                            # Frontend (mantém estrutura)
+│   ├── css/
+│   │   └── core.css
+│   ├── js/
+│   │   ├── app.js
+│   │   └── modules/
+│   │       └── pgrs.js
+│   └── sections/
+│       ├── dashboard.html
+│       └── pgrs.html
+│
+├── docs/                              # Documentação atualizada
+│   ├── PROJETO_EXECUTIVO.md           # ← Este arquivo
+│   ├── ARQUITETURA_DOMINIOS.md
+│   ├── ESPECIFICACAO_FUNCIONAL.md
+│   ├── MODELO_DADOS.md
+│   └── CHECKLIST_IMPLEMENTACAO.md
+│
+├── .env.example
+├── go.mod
+├── go.sum
+├── Dockerfile
+└── README.md
+```
+
+---
+
+## 🎨 ANATOMIA DE UM DOMÍNIO
+
+### Camadas e Responsabilidades
+
+```
+domain/pgrs/
+│
+├── models/              # Entidades de negócio
+│   └── pgrs.go          # Struct + Métodos de negócio
+│
+├── repository/          # Acesso a dados
+│   ├── interfaces.go    # Contratos (interface)
+│   └── pgrs_repo.go     # Implementação GORM
+│
+├── service/             # Lógica de negócio
+│   └── pgrs_service.go  # Orquestração + Regras
+│
+├── handlers/            # Apresentação
+│   ├── http_handler.go  # REST endpoints
+│   └── ws_handler.go    # WebSocket
+│
+└── dto/                 # Contratos de entrada/saída
+    ├── requests.go      # Input
+    └── responses.go     # Output
+```
+
+### Fluxo de Dados
+
+```
+Cliente (HTTP/WS)
+    ↓
+Handler (Validação + Parsing)
+    ↓
+Service (Lógica de Negócio)
+    ↓
+Repository (Persistência)
+    ↓
+Database
+```
+
+### Exemplo Prático: Criar PGRS
+
+```go
+// 1. HANDLER recebe requisição
+func (h *HTTPHandler) Create(c *gin.Context) {
+    var req dto.CriarPGRSRequest
+    c.ShouldBindJSON(&req)
+    
+    // 2. Delega para SERVICE
+    pgrs, err := h.service.CriarRascunho(c.Request.Context(), &req)
+    
+    c.JSON(200, pgrs)
+}
+
+// 3. SERVICE aplica regras de negócio
+func (s *PGRSService) CriarRascunho(ctx context.Context, req *dto.CriarPGRSRequest) (*models.PGRS, error) {
+    numero := s.gerarNumeroSequencial()
+    
+    pgrs := &models.PGRS{
+        UnidadeID: req.UnidadeID,
+        Numero:    numero,
+        Status:    models.StatusRascunho,
+    }
+    
+    // 4. REPOSITORY persiste
+    return s.repo.Create(ctx, pgrs)
+}
+
+// 5. REPOSITORY interage com banco
+func (r *pgrsRepository) Create(ctx context.Context, pgrs *models.PGRS) (*models.PGRS, error) {
+    err := r.db.WithContext(ctx).Create(pgrs).Error
+    return pgrs, err
+}
+```
+
+---
+
+## 🔄 FLUXO PRINCIPAL: GERAÇÃO DE PGRS
+
+### Estados do PGRS
+
+```
+RASCUNHO 
+    ↓
+EM_GERACAO (IA processando)
+    ↓
+AGUARDANDO_REVISAO (engenheiro revisa)
+    ↓
+    ├─→ APROVADO → PUBLICADO
+    │
+    └─→ EM_CORRECAO (volta para IA) ⟲
+```
+
+### Jornada Completa (Happy Path)
+
+```
+1. Engenheiro: Abre wizard de 5 passos
+   ├─ Passo 1: Dados da Empresa
+   ├─ Passo 2: Dados da Unidade  
+   ├─ Passo 3: Inventário de Resíduos
+   ├─ Passo 4: Aspectos Operacionais
+   └─ Passo 5: Revisão e Confirmação
+   
+2. Sistema: Salva em estado RASCUNHO
+   
+3. Engenheiro: Clica "Gerar com IA"
+   
+4. Backend (WebSocket):
+   ├─ Status → EM_GERACAO
+   ├─ IA Auditor → Análise de compliance (15s)
+   ├─ IA Redator → Memorial descritivo (20s)
+   └─ Status → AGUARDANDO_REVISAO
+   
+5. Engenheiro: Visualiza lado a lado
+   ├─ Minuta gerada (esquerda)
+   ├─ Comentários (direita)
+   └─ Ações: Aprovar | Solicitar Correção | Rejeitar
+   
+6. Engenheiro: Aprova
+   
+7. Sistema: 
+   ├─ Status → APROVADO
+   ├─ Gera DOCX formatado ABNT
+   ├─ Calcula hash SHA-256
+   └─ Envia email com link de download
+   
+8. Engenheiro: Baixa DOCX pronto
+```
+
+**Tempo total:** 10-15 minutos (vs 48h manual)
+
+---
+
+## 💎 FUNCIONALIDADES PRINCIPAIS
+
+### F-PGRS-001: Wizard de Criação ⭐⭐⭐
+
+**Domínio:** `internal/domain/pgrs`  
+**Handler:** `handlers/http_handler.go`  
+**Service:** `service/pgrs_service.go`  
+
+**Endpoints:**
+```
+POST   /api/pgrs                    # Criar rascunho
+GET    /api/pgrs/:id                # Buscar por ID
+PUT    /api/pgrs/:id                # Atualizar rascunho
+DELETE /api/pgrs/:id                # Deletar (soft)
+```
+
+**Features:**
+- ✅ Salvamento automático a cada 30s
+- ✅ Validação em tempo real (CNPJ, Email, etc)
+- ✅ Templates contextuais por setor
+- ✅ Navegação entre passos
+
+---
+
+### F-PGRS-002: Geração com IA ⭐⭐⭐
+
+**Domínio:** `internal/domain/pgrs`  
+**Service:** `service/generator_service.go`  
+**Agents:** `agents/auditor.go` + `agents/redator.go`  
+
+**Endpoint:**
+```
+POST /api/pgrs/:id/gerar
+WebSocket: { action: "pgrs.gerar", payload: { pgrs_id: 1 } }
+```
+
+**Fluxo:**
+```go
+// 1. HTTP recebe requisição
+POST /api/pgrs/1/gerar
+
+// 2. Handler inicia geração assíncrona
+func (h *HTTPHandler) GerarComIA(c *gin.Context) {
+    id := c.Param("id")
+    
+    // Inicia processamento em background
+    go h.service.GerarComIA(ctx, id)
+    
+    c.JSON(202, gin.H{"message": "Geração iniciada"})
+}
+
+// 3. Service orquestra IAs
+func (s *PGRSService) GerarComIA(ctx context.Context, id uint) error {
+    // Busca PGRS
+    pgrs := s.repo.FindByID(ctx, id)
+    
+    // Atualiza status
+    pgrs.Status = models.StatusEmGeracao
+    s.repo.Update(ctx, pgrs)
+    
+    // Envia progresso via WebSocket
+    s.hub.SendToClient(client, Message{
+        Action: "pgrs.status",
+        Payload: map[string]string{
+            "status": "Iniciando auditoria...",
+        },
+    })
+    
+    // Chama IA Auditor
+    auditoria := s.generator.Auditar(ctx, pgrs)
+    
+    s.hub.SendToClient(client, Message{
+        Action: "pgrs.status",
+        Payload: map[string]string{
+            "status": "Gerando memorial descritivo...",
+        },
+    })
+    
+    // Chama IA Redator
+    relatorio := s.generator.Redigir(ctx, pgrs, auditoria)
+    
+    // Salva resultado
+    pgrs.ResultadoAuditoria = auditoria
+    pgrs.RelatorioGerado = relatorio
+    pgrs.Status = models.StatusAguardandoRevisao
+    s.repo.Update(ctx, pgrs)
+    
+    // Notifica conclusão
+    s.hub.SendToClient(client, Message{
+        Action: "pgrs.gerado",
+        Payload: pgrs,
+    })
+    
+    return nil
+}
+```
+
+**Features:**
+- ✅ Processamento assíncrono
+- ✅ Feedback em tempo real via WebSocket
+- ✅ Retry automático em caso de falha
+- ✅ Log de todas as etapas
+
+---
+
+### F-PGRS-003: Sistema de Revisão ⭐⭐⭐
+
+**Domínio:** `internal/domain/pgrs`  
+**Service:** `service/review_service.go`  
+**Handler:** `handlers/http_handler.go`  
+
+**Endpoints:**
+```
+POST /api/pgrs/:id/aprovar          # Aprovar
+POST /api/pgrs/:id/solicitar-correcao  # Pedir correção
+POST /api/pgrs/:id/rejeitar         # Rejeitar
+```
+
+**Interface (Frontend):**
+```html
+<div class="row">
+  <!-- Minuta Gerada -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Minuta Gerada pela IA</div>
+      <div class="card-body">
+        <div id="minuta-conteudo"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Painel de Revisão -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Revisão</div>
+      <div class="card-body">
+        <textarea class="form-control" 
+                  placeholder="Comentários e correções..."></textarea>
+        
+        <div class="mt-3">
+          <button class="btn btn-success">✓ Aprovar</button>
+          <button class="btn btn-warning">✏️ Solicitar Correção</button>
+          <button class="btn btn-danger">✗ Rejeitar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+---
+
+### F-PGRS-004: Geração de DOCX ⭐⭐⭐
+
+**Domínio:** `internal/domain/pgrs`  
+**Service:** `service/docx_service.go`  
+**Biblioteca:** `unioffice`  
+
+**Endpoint:**
+```
+GET /api/pgrs/:id/download
+```
+
+**Funcionalidades:**
+- ✅ Template ABNT profissional
+- ✅ Logo da consultoria no cabeçalho
+- ✅ Sumário automático
+- ✅ Tabelas formatadas
+- ✅ Numeração de seções
+- ✅ Quebras de página
+- ✅ Rodapé com paginação
+
+**Exemplo:**
+```go
+func (s *DOCXService) Gerar(pgrs *models.PGRS) (string, error) {
+    doc := document.New()
+    
+    // Cabeçalho
+    hdr := doc.AddHeader()
+    para := hdr.AddParagraph()
+    para.AddRun().AddPicture(gooxml.Common{}, "./logo.png")
+    para.AddRun().AddText("PGRS - " + pgrs.Numero)
+    
+    // Título
+    titulo := doc.AddParagraph()
+    titulo.AddRun().AddText("MEMORIAL DESCRITIVO")
+    titulo.Properties().SetStyle("Heading1")
+    
+    // Conteúdo (Markdown → DOCX)
+    s.renderizarMarkdown(doc, pgrs.RelatorioGerado)
+    
+    // Salvar
+    filepath := fmt.Sprintf("./storage/documents/%s.docx", pgrs.Numero)
+    doc.SaveToFile(filepath)
+    
+    return filepath, nil
+}
+```
+
+---
+
+## 🔐 SEGURANÇA E AUTENTICAÇÃO
+
+### JWT Authentication
+
+**Domínio:** `internal/domain/admin`  
+**Service:** `service/auth_service.go`  
+**Middleware:** `internal/shared/middleware/auth.go`  
+
+**Fluxo:**
+```
+1. Login: POST /api/auth/login
+   ├─ Validar credenciais
+   ├─ Gerar JWT token
+   └─ Retornar token + refresh token
+
+2. Requisições protegidas:
+   ├─ Header: Authorization: Bearer {token}
+   ├─ Middleware valida JWT
+   ├─ Extrai usuário do token
+   └─ Injeta no contexto
+```
+
+**Exemplo:**
+```go
+// Login
+func (s *AuthService) Login(email, senha string) (string, error) {
+    // Buscar usuário
+    user := s.repo.FindByEmail(email)
+    
+    // Validar senha
+    if !user.VerificarSenha(senha) {
+        return "", errors.New("credenciais inválidas")
+    }
+    
+    // Gerar JWT
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+        "user_id": user.ID,
+        "email":   user.Email,
+        "role":    user.Role,
+        "exp":     time.Now().Add(24 * time.Hour).Unix(),
+    })
+    
+    return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+}
+
+// Middleware
+func AuthMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        tokenString := c.GetHeader("Authorization")
+        tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+        
+        token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+            return []byte(os.Getenv("JWT_SECRET")), nil
+        })
+        
+        if err != nil || !token.Valid {
+            c.AbortWithStatusJSON(401, gin.H{"error": "Não autorizado"})
+            return
+        }
+        
+        claims := token.Claims.(jwt.MapClaims)
+        c.Set("user_id", uint(claims["user_id"].(float64)))
+        c.Set("user_role", claims["role"].(string))
+        
+        c.Next()
+    }
+}
+```
+
+---
+
+## 📊 MÉTRICAS DE SUCESSO
+
+### KPIs Técnicos
+
+| Métrica | Meta | Como Medir |
+|---------|------|------------|
+| Tamanho máximo de arquivo | < 200 linhas | `wc -l *.go` |
+| Cobertura de testes | > 80% | `go test -cover ./...` |
+| Tempo de geração PGRS | < 60s | Timer interno |
+| Uptime | > 99.5% | Monitoramento (Grafana) |
+| Complexidade ciclomática | < 10 | `gocyclo` |
+
+### KPIs de Negócio
+
+| Métrica | Meta | Como Medir |
+|---------|------|------------|
+| Redução de tempo | > 90% | Comparação antes/depois |
+| Taxa de aprovação 1ª revisão | > 85% | Banco de dados |
+| PGRS gerados/mês | 10+ | Produção mensal |
+| Satisfação do engenheiro | > 4.5/5 | NPS survey |
+| ROI | > 400% | Economia vs custo |
+
+---
+
+## 🚀 CRONOGRAMA EXECUTIVO
+
+### Fase 1: Setup + Refatoração Base (Semana 1)
+
+**Dias 1-2: Preparação**
+- [ ] Backup completo
+- [ ] Criar nova estrutura de pastas
+- [ ] Setup shared/ (database, websocket, middleware)
+
+**Dias 3-5: Domínio Admin**
+- [ ] Models (Usuario, Session)
+- [ ] Repository + Service
+- [ ] HTTP Handlers (login, logout)
+- [ ] Middleware de autenticação
+- [ ] Testes unitários
+
+**Entregável:** Autenticação funcionando
+
+---
+
+### Fase 2: Domínio PGRS Core (Semana 2)
+
+**Dias 1-3: CRUD + Wizard**
+- [ ] Models (PGRS, Gerador, Unidade)
+- [ ] Repositories
+- [ ] Service básico (CRUD)
+- [ ] HTTP Handlers
+- [ ] Frontend: Wizard 5 passos
+- [ ] Testes
+
+**Dias 4-5: Geração com IA**
+- [ ] Generator Service
+- [ ] Agents (Auditor + Redator)
+- [ ] WebSocket Handler
+- [ ] Integração Gemini
+- [ ] Testes de integração
+
+**Entregável:** Geração de PGRS end-to-end
+
+---
+
+### Fase 3: Revisão + DOCX (Semana 3)
+
+**Dias 1-2: Sistema de Revisão**
+- [ ] Review Service
+- [ ] HTTP Handlers (aprovar, rejeitar, corrigir)
+- [ ] Frontend: Interface de revisão
+- [ ] Workflow completo
+- [ ] Testes
+
+**Dias 3-4: Geração de DOCX**
+- [ ] DOCX Service
+- [ ] Template ABNT
+- [ ] Geração de arquivo
+- [ ] Download
+- [ ] Testes
+
+**Dia 5: Integração Final**
+- [ ] Testes end-to-end
+- [ ] Ajustes de UX
+- [ ] Correção de bugs
+
+**Entregável:** Sistema completo funcional
+
+---
+
+### Fase 4: Deploy + Produção (Semana 4)
+
+**Dias 1-2: Domínios Suporte**
+- [ ] Domínio Comercial (básico)
+- [ ] Domínio Financeiro (básico)
+- [ ] Dashboard simplificado
+
+**Dias 3-4: Deploy**
+- [ ] Setup servidor Cloud
+- [ ] Configuração PostgreSQL
+- [ ] SSL/HTTPS
+- [ ] Backup automático
+- [ ] Monitoramento
+
+**Dia 5: Lançamento**
+- [ ] Testes em produção
+- [ ] Documentação final
+- [ ] Treinamento (se aplicável)
+
+**Entregável:** Sistema em produção
+
+---
+
+## ⚠️ RISCOS E MITIGAÇÕES
+
+| Risco | Impacto | Probabilidade | Mitigação |
+|-------|---------|---------------|-----------|
+| Refatoração quebrar funcionalidades | ALTO | MÉDIA | Testes em cada etapa + Rollback plan |
+| API Gemini instável | ALTO | BAIXA | Retry automático + Cache |
+| Complexidade da migração | MÉDIO | MÉDIA | Migração incremental + Documentação |
+| Prazo apertado | MÉDIO | ALTA | Priorização (PGRS primeiro) |
+
+---
+
+## 📚 REFERÊNCIAS TÉCNICAS
+
+### Livros
+- Domain-Driven Design (Eric Evans)
+- Clean Architecture (Robert C. Martin)
+- Building Microservices (Sam Newman)
+
+### Documentação
+- [Gin Framework](https://gin-gonic.com/docs/)
+- [GORM Guide](https://gorm.io/docs/)
+- [Gemini API](https://cloud.google.com/vertex-ai/docs/generative-ai/model-reference/gemini)
+
+### Código de Referência
+- [Go Standards Project Layout](https://github.com/golang-standards/project-layout)
+- [Uber Go Style Guide](https://github.com/uber-go/guide/blob/master/style.md)
+
+---
+
+## ✅ CRITÉRIOS DE APROVAÇÃO
+
+Para considerar o projeto concluído:
+
+**Técnico:**
+- [ ] Nenhum arquivo com mais de 200 linhas
+- [ ] Cobertura de testes > 80%
+- [ ] Zero dependências circulares
+- [ ] Documentação completa
+
+**Funcional:**
+- [ ] PGRS gerado em < 15 minutos
+- [ ] DOCX formatado corretamente
+- [ ] Workflow de revisão funcional
+- [ ] WebSocket sem erros
+
+**Qualidade:**
+- [ ] Código revisado (code review)
+- [ ] Sem warnings do linter
+- [ ] Logs estruturados
+- [ ] Tratamento de erros robusto
+
+---
+
+**Status:** ✅ PROJETO EXECUTIVO APROVADO  
+**Próximo Passo:** Seguir CHECKLIST_IMPLEMENTACAO.md atualizado
+
+---

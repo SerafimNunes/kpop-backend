@@ -1,22 +1,37 @@
 package engineering
 
 import (
+	"auren-platform/internal/infrastructure/gemini"
+	"cloud.google.com/go/vertexai/genai"
 	"context"
-	"auren-platform/internal/engine"
+	"fmt"
 )
 
-const CondicionantesPrompt = `Você é o Agente de Monitoramento de Condicionantes.
-Leia a Licença Ambiental (LO, LI, LP) e extraia prazos e obrigações.
-Gere um cronograma de alertas para evitar multas por perda de prazo.`
-
+// MonitorCondicionantes monitora licenças ambientais e prazos legais
 type MonitorCondicionantes struct {
-	gemini *engine.GeminiService
+	gemini *gemini.Service
 }
 
-func NewMonitorCondicionantes(s *engine.GeminiService) *MonitorCondicionantes {
+// NewMonitorCondicionantes cria uma nova instância do agente de monitoramento
+func NewMonitorCondicionantes(s *gemini.Service) *MonitorCondicionantes {
 	return &MonitorCondicionantes{gemini: s}
 }
 
+// ExtrairObrigacoes analisa o texto de licenças (LP, LI, LO) e gera cronogramas
 func (a *MonitorCondicionantes) ExtrairObrigacoes(ctx context.Context, licencaTexto string) (string, error) {
-	return a.gemini.Generate(ctx, nil, CondicionantesPrompt+"\nLICENÇA:\n"+licencaTexto)
+	if licencaTexto == "" {
+		return "Nenhum texto de licença fornecido para análise.", nil
+	}
+
+	systemPrompt := `### AGENTE DE MONITORAMENTO DE CONDICIONANTES AUREN
+Você é um especialista em licenciamento ambiental. Sua missão é:
+1. Ler o texto da Licença Ambiental fornecida.
+2. Extrair TODAS as condicionantes, obrigações e prazos.
+3. Gerar um cronograma de alertas e ações necessárias para evitar infrações ou multas.`
+
+	parts := []genai.Part{
+		genai.Text(fmt.Sprintf("CONTEÚDO DA LICENÇA:\n%s", licencaTexto)),
+	}
+
+	return a.gemini.Generate(ctx, parts, systemPrompt)
 }

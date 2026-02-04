@@ -5,64 +5,123 @@ import (
 	"fmt"
 	"log"
 
+	"auren-platform/internal/infrastructure/gemini"
+
 	"cloud.google.com/go/vertexai/genai"
 )
 
-type RedatorAgent struct {
-	Svc *GeminiService
+// RedatorPGRS renomeado para sincronizar com o Handler
+type RedatorPGRS struct {
+	gemini *gemini.Service
 }
 
-func NewRedator(svc *GeminiService) *RedatorAgent {
-	return &RedatorAgent{Svc: svc}
+func NewRedatorPGRS(s *gemini.Service) *RedatorPGRS {
+	return &RedatorPGRS{gemini: s}
 }
 
-// RefinarParaLaudo transforma notas brutas de campo em texto formal para o laudo PGRS.
-func (a *RedatorAgent) RefinarParaLaudo(ctx context.Context, textoBruto string) (string, error) {
-	systemPrompt := "Você é o Redator Técnico da Auren. Transforme notas de campo em texto profissional, impessoal e em conformidade com as normas ABNT."
-	
+// ElaborarMinuta (Método principal usado pelo Handler)
+func (r *RedatorPGRS) ElaborarMinuta(ctx context.Context, textoBruto string) (string, error) {
+	log.Println("✍️ [ENGINEERING] Elaborando minuta técnica...")
+
+	systemPrompt := "Você é o Redator Técnico da Auren. Transforme notas em texto profissional ABNT."
+
 	parts := []genai.Part{
-		genai.Text("Texto para refinar: " + textoBruto),
+		genai.Text("Conteúdo bruto: " + textoBruto),
 	}
 
-	return a.Svc.Generate(ctx, parts, systemPrompt)
+	return r.gemini.Generate(ctx, parts, systemPrompt)
 }
 
-// AnalyzeTechnicalAudio processa a transcrição e análise técnica de áudios
-func (a *RedatorAgent) AnalyzeTechnicalAudio(ctx context.Context, audioData []byte, promptText string) (string, error) {
-	if len(audioData) == 0 {
-		return "", nil
-	}
-	log.Println("[AUREN-AI] Processando Áudio Técnico de Campo...")
+// GerarRelatorioPGRS cria o laudo final em Markdown
+func (r *RedatorPGRS) GerarRelatorioPGRS(ctx context.Context, pgrsDataJSON []byte, auditResult string) (string, error) {
+	systemPrompt := `Você é o REDATOR-CHEFE TÉCNICO da Auren Consultoria, especialista em documentação ambiental.
 
-	prompt := []genai.Part{
-		genai.Blob{MIMEType: "audio/wav", Data: audioData},
-		genai.Text("Extraia dados técnicos deste áudio: " + promptText),
-	}
+TAREFA: Gerar um MEMORIAL DESCRITIVO profissional de um PGRS (Plano de Gerenciamento de Resíduos Sólidos) em formato Markdown.
 
-	return a.Svc.Generate(ctx, prompt, "Atue como um perito ambiental transcrevendo evidências de áudio.")
+ESTRUTURA OBRIGATÓRIA:
+
+# MEMORIAL DESCRITIVO - PGRS
+**Plano de Gerenciamento de Resíduos Sólidos**
+
+---
+
+## 1. IDENTIFICAÇÃO DO EMPREENDIMENTO
+
+[Dados da empresa: razão social, CNPJ, CNAE, endereço]
+
+## 2. OBJETIVO
+
+Este Plano de Gerenciamento de Resíduos Sólidos (PGRS) tem como objetivo estabelecer as diretrizes e procedimentos para o gerenciamento adequado dos resíduos sólidos gerados pela empresa, em conformidade com a Política Nacional de Resíduos Sólidos (Lei 12.305/2010) e demais normas aplicáveis.
+
+## 3. DIAGNÓSTICO DE RESÍDUOS
+
+### 3.1 Inventário de Resíduos
+
+[Tabela em Markdown com: Nome do Resíduo | Classe NBR 10.004 | Quantidade Mensal | Destinação]
+
+### 3.2 Classificação Técnica
+
+[Explicação da classificação de cada resíduo segundo NBR 10.004]
+
+## 4. SEGREGAÇÃO E ACONDICIONAMENTO
+
+[Descrever como os resíduos serão segregados na fonte e acondicionados]
+
+## 5. ARMAZENAMENTO TEMPORÁRIO
+
+[Descrever área de armazenamento, capacidade, características físicas]
+
+## 6. TRANSPORTE INTERNO E EXTERNO
+
+[Descrever procedimentos de transporte, transportadoras autorizadas]
+
+## 7. DESTINAÇÃO FINAL
+
+[Para cada tipo de resíduo, descrever a destinação final ambientalmente adequada]
+
+## 8. METAS E PROCEDIMENTOS
+
+### 8.1 Metas de Redução
+[Estabelecer metas quantitativas de redução de geração]
+
+### 8.2 Reciclagem e Reaproveitamento
+[Percentuais e ações para maximizar reciclagem]
+
+## 9. RESPONSABILIDADE TÉCNICA
+
+[Informar responsável técnico com CREA]
+
+## 10. CRONOGRAMA DE IMPLEMENTAÇÃO
+
+[Prazos para implementação das ações]
+
+---
+
+**Data de Elaboração:** [Data atual]  
+**Validade:** 12 meses a partir da data de elaboração
+
+---
+
+DIRETRIZES DE REDAÇÃO:
+- Use linguagem técnica profissional
+- Seja específico e detalhado
+- Cite sempre as normas aplicáveis (Lei 12.305/2010, NBR 10.004, etc.)
+- Formate tabelas em Markdown correto
+- Use negrito para termos importantes
+- Seja objetivo mas completo
+
+NÃO:
+- Não use termos genéricos demais
+- Não deixe seções vazias
+- Não invente dados que não foram fornecidos`
+
+	prompt := fmt.Sprintf(`Dados do formulário PGRS:
+%s
+
+Resultado da Auditoria de Compliance:
+%s
+
+Gere o Memorial Descritivo completo seguindo rigorosamente a estrutura definida.`, string(pgrsDataJSON), auditResult)
+
+	return r.gemini.Generate(ctx, []genai.Part{genai.Text(prompt)}, systemPrompt)
 }
-
-// AnalyzeText realiza análise simples de strings curtas.
-func (a *RedatorAgent) AnalyzeText(ctx context.Context, text string) (string, error) {
-		if len(text) < 20 {
-			return "Input insuficiente para análise técnica.", nil
-		}
-		return a.Svc.ExecuteSimplePrompt(ctx, text)
-	}
-	
-	// GeneratePGRSReport cria o laudo final do PGRS em formato Markdown.
-	func (a *RedatorAgent) GeneratePGRSReport(ctx context.Context, pgrsDataJSON []byte, auditResult string) (string, error) {
-		systemPrompt := "VOCÊ É O REDATOR-CHEFE DA AUREN, especialista em criar laudos técnicos de engenharia ambiental (PGRS). " +
-			"Sua tarefa é gerar um MEMORIAL DESCRITIVO completo e bem formatado em **Markdown**, usando os dados do PGRS e os apontamentos da auditoria. " +
-			"Siga estritamente a estrutura: 1. OBJETO, 2. QUADRO RESUMO DE RESÍDUOS (em uma tabela Markdown), 3. APONTAMENTOS DA AUDITORIA, 4. RESPONSABILIDADE TÉCNICA. " +
-			"Seja formal, técnico e use os dados fornecidos para preencher todas as seções."
-	
-		prompt := fmt.Sprintf("Dados do PGRS em JSON:\n```json\n%s\n```\n\nApontamentos da Auditoria:\n```\n%s\n```\n\nPor favor, gere o Memorial Descritivo completo em Markdown.", string(pgrsDataJSON), auditResult)
-	
-		parts := []genai.Part{
-			genai.Text(prompt),
-		}
-	
-		return a.Svc.Generate(ctx, parts, systemPrompt)
-	}
-	

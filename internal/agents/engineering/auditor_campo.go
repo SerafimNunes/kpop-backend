@@ -4,67 +4,72 @@ import (
 	"context"
 	"fmt"
 
+	"auren-platform/internal/infrastructure/gemini"
+
 	"cloud.google.com/go/vertexai/genai"
 )
 
-type AuditorAgent struct {
-	Svc *GeminiService
+// AuditorCampo renomeado para sincronizar com o Handler
+type AuditorCampo struct {
+	gemini *gemini.Service
 }
 
-func NewAuditor(svc *GeminiService) *AuditorAgent {
-	return &AuditorAgent{Svc: svc}
+func NewAuditorCampo(s *gemini.Service) *AuditorCampo {
+	return &AuditorCampo{gemini: s}
 }
 
-// AnalyzeFieldEvidence processa fotos/vídeos e confronta com as NBRs
-func (a *AuditorAgent) AnalyzeFieldEvidence(ctx context.Context, mediaData []byte, mimeType string, notes string) (string, error) {
-	systemPrompt := "VOCÊ É O AUDITOR DE CAMPO DA AUREN. Sua missão é identificar inconformidades visuais. " +
-		"Use rigor técnico NBR 12.235 e NBR 7.500. Se houver risco ambiental, use [ALERTA CRÍTICO]."
+// AnalisarEvidencias processa fotos/vídeos e notas (Método principal usado pelo Handler)
+func (a *AuditorCampo) AnalisarEvidencias(ctx context.Context, data string) (string, error) {
+	systemPrompt := "VOCÊ É O AUDITOR DE CAMPO DA AUREN. Identifique inconformidades visuais NBR 12.235 e NBR 7.500."
 
 	parts := []genai.Part{
-
-		genai.Blob{MIMEType: mimeType, Data: mediaData},
-
-		genai.Text(fmt.Sprintf("Notas de campo: %s\n\nTarefa: Analise a conformidade desta evidência.", notes)),
+		genai.Text(fmt.Sprintf("Dados para auditoria: %s", data)),
 	}
 
-	return a.Svc.Generate(ctx, parts, systemPrompt)
-
+	return a.gemini.Generate(ctx, parts, systemPrompt)
 }
 
-// AnalyzePGRSCompliance verifica os dados de um formulário PGRS contra as normas
+// AnalisarPGRSCompliance verifica os dados de um formulário contra as normas
+func (a *AuditorCampo) AnalisarPGRSCompliance(ctx context.Context, pgrsDataJSON []byte) (string, error) {
+	systemPrompt := `Você é o AUDITOR-CHEFE DE COMPLIANCE AMBIENTAL da Auren Consultoria.
 
-func (a *AuditorAgent) AnalyzePGRSCompliance(ctx context.Context, pgrsDataJSON []byte) (string, error) {
+TAREFA: Analisar dados de PGRS e identificar conformidades e não-conformidades com:
+- Lei 12.305/2010 (Política Nacional de Resíduos Sólidos)
+- NBR 10.004:2004 (Classificação de Resíduos Sólidos)
+- NBR 12.235 (Armazenamento de Resíduos)
+- Resoluções CONAMA relevantes
 
-	systemPrompt := "VOCÊ É O AUDITOR-CHEFE DA AUREN, especialista em legislação de resíduos sólidos (Lei 12.305/10 e NBR 10.004). " +
+ANÁLISE OBRIGATÓRIA:
+1. Verificar se todos os resíduos estão classificados corretamente
+2. Verificar se as destinações são adequadas para cada classe
+3. Identificar riscos de passivos ambientais
+4. Avaliar exposição jurídica da empresa
 
-		"Sua tarefa é analisar os dados de um PGRS em formato JSON e apontar, em formato de lista (bullet points), TODAS as inconsistências, " +
+FORMATO DE SAÍDA OBRIGATÓRIO (Markdown):
 
-		"pontos de melhoria ou riscos de não conformidade. Seja extremamente rigoroso e técnico. Se não houver nenhuma inconsistência, responda com 'Nenhuma inconsistência encontrada. O PGRS atende aos requisitos primários de conformidade.'"
+## 📊 SCORE DE COMPLIANCE
+[Percentual de 0-100%]
 
-	prompt := fmt.Sprintf("Analise os seguintes dados de um PGRS e aponte as não conformidades:\n\n```json\n%s\n```", string(pgrsDataJSON))
+## ✅ CONFORMIDADES IDENTIFICADAS
+- [Lista de pontos positivos]
 
-	parts := []genai.Part{
+## ⚠️ NÃO-CONFORMIDADES CRÍTICAS
+- [Lista de problemas graves que precisam correção imediata]
 
-		genai.Text(prompt),
-	}
+## 📋 RECOMENDAÇÕES PRIORITÁRIAS
+1. [Ação prioritária 1]
+2. [Ação prioritária 2]
+3. [Ação prioritária 3]
 
-	return a.Svc.Generate(ctx, parts, systemPrompt)
+## ⚖️ EXPOSIÇÃO JURÍDICA
+[MÍNIMA / MODERADA / ALTA] - [Justificativa breve]
 
-}
+## 📚 BASE LEGAL
+- [Artigos e normas aplicáveis]
 
-// AnalyzeInspectionNotes analisa as observações de texto livre de um técnico de campo.
+Seja técnico, objetivo e sempre cite a base legal.`
 
-func (a *AuditorAgent) AnalyzeInspectionNotes(ctx context.Context, notes string) (string, error) {
+	prompt := fmt.Sprintf("Dados do PGRS para análise:\n\n%s\n\nExecute a análise de compliance completa.", string(pgrsDataJSON))
 
-	systemPrompt := "VOCÊ É O AUDITOR DE CAMPO DA AUREN. Sua missão é interpretar as anotações de um técnico em campo e transformá-las em um resumo coeso, " +
-
-		"identificando pontos de atenção e potenciais riscos ambientais. Formate a saída em um parágrafo curto e objetivo."
-
-	parts := []genai.Part{
-
-		genai.Text(fmt.Sprintf("Analisar as seguintes anotações de vistoria:\n\n\"%s\"", notes)),
-	}
-
-	return a.Svc.Generate(ctx, parts, systemPrompt)
-
+	return a.gemini.Generate(ctx, []genai.Part{genai.Text(prompt)}, systemPrompt)
 }

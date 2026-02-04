@@ -1,85 +1,54 @@
-/**
- * Auren Dashboard Module - v2.0
- * Gerenciamento de KPIs, Gráficos de Faturamento e Status Operacional
- */
-document.addEventListener('alpine:init', () => {
-    Alpine.data('dashboardModule', () => ({
-        revenueChart: null,
+document.addEventListener("alpine:init", () => {
+  Alpine.data("dashboardModule", () => ({
+    // --- ESTADO LOCAL (será preenchido pelo backend) ---
+    stats: { tempoIA: 0 },
+    semaforo: [],
+    leads: [],
+    radarNews: [],
+    projetos: [],
+
+    init() {
+        console.log("🚀 Dashboard Module: Online");
+
+        // Solicita os dados iniciais ao motor via WebSocket
+        // A função sendCommand está no escopo global do Alpine, em auren-core.js
+        this.sendCommand('dashboard_request_sync');
+
+        // --- LISTENERS DE SOCKET ---
+
+        // Listener para receber os dados iniciais do dashboard
+        window.addEventListener("socket:dashboard_init", (e) => {
+            console.log("Dashboard data received:", e.detail);
+            const data = e.detail;
+            this.semaforo = data.semaforo || [];
+            this.leads = data.leads || [];
+            this.radarNews = data.radarNews || [];
+            this.projetos = data.projetos || [];
+            if (data.stats) {
+                this.stats = { ...this.stats, ...data.stats };
+            }
+        });
         
-        // Mock de dados operacionais (Pode ser substituído por fetch futuro)
-        stats: {
-            pgrsEmitidos: 24,
-            metaMensal: 30,
-            tempoIA: 4.2,
-            aguardandoRT: 7,
-            receitaMensal: 14200,
-            receitaPendente: 3800
-        },
+        // Listeners para atualizações em tempo real
+        window.addEventListener("socket:HUNTER_UPDATE", (e) => {
+            if (e.detail && e.detail.empresa) {
+                this.leads.unshift(e.detail);
+                if (this.leads.length > 5) this.leads.pop();
+                this.addNotification(`Hunter: Novo Lead Detectado (${e.detail.empresa})`, 'success');
+            }
+        });
 
-        // Dados do gráfico de faturamento
-        revenueData: {
-            labels: ["Jul", "Ago", "Set", "Out", "Nov", "Dez"],
-            datasets: [{
-                label: "Faturamento Mensal (R$)",
-                data: [10000, 12000, 11500, 13000, 14200, 15500],
-                borderColor: "#d4af37",
-                backgroundColor: "rgba(212, 175, 55, 0.1)",
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                pointRadius: 4,
-                pointBackgroundColor: "#d4af37"
-            }]
-        },
+        window.addEventListener("socket:RADAR_ALERT", (e) => {
+            this.radarNews.unshift(e.detail);
+            if (this.radarNews.length > 5) this.radarNews.pop();
+            this.addNotification("Radar: Nova atualização legislativa detectada", 'info');
+        });
 
-        /**
-         * Inicialização do componente
-         */
-        init() {
-            // Pequeno delay para garantir que o canvas foi injetado pelo auren-core
-            setTimeout(() => {
-                this.renderRevenueChart();
-            }, 100);
-        },
-
-        /**
-         * Renderização do Chart.js
-         */
-        renderRevenueChart() {
-            const canvas = document.getElementById("revenueChart");
-            if (!canvas) return;
-
-            if (this.revenueChart) this.revenueChart.destroy();
-
-            const ctx = canvas.getContext('2d');
-            this.revenueChart = new Chart(ctx, {
-                type: "line",
-                data: this.revenueData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#161b22',
-                            titleColor: '#d4af37',
-                            bodyColor: '#fff',
-                            borderColor: '#30363d',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: { color: "rgba(255,255,255,0.05)", drawBorder: false },
-                            ticks: { color: "#71717a", font: { size: 10 } },
-                        },
-                        x: { 
-                            grid: { display: false }, 
-                            ticks: { color: "#71717a", font: { size: 10 } } 
-                        },
-                    },
-                },
-            });
-        }
-    }));
+        window.addEventListener("socket:TELEMETRY", (e) => {
+            if (e.detail && e.detail.latency) {
+                this.stats.tempoIA = e.detail.latency;
+            }
+        });
+    },
+  }));
 });

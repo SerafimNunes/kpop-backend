@@ -1,0 +1,269 @@
+# 🧪 ESTRATÉGIA DE TESTES
+## AUREN PLATFORM v2.0
+
+**Versão:** 2.0.0  
+**Data:** 01/02/2026  
+**Meta de Cobertura:** 80%+  
+
+---
+
+## 🎯 PIRÂMIDE DE TESTES
+
+```
+        /\
+       /  \    E2E (5%)
+      /____\
+     /      \  Integration (15%)
+    /________\
+   /          \ Unit (80%)
+  /____________\
+```
+
+### Distribuição
+
+- **Testes Unitários:** 80% (rápidos, isolados)
+- **Testes de Integração:** 15% (banco, API)
+- **Testes E2E:** 5% (fluxos completos)
+
+---
+
+## ✅ TESTES UNITÁRIOS
+
+### Testando Service
+
+```go
+// internal/domain/pgrs/service/pgrs_service_test.go
+package service
+
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/mock"
+)
+
+// Mock do Repository
+type MockPGRSRepository struct {
+    mock.Mock
+}
+
+func (m *MockPGRSRepository) Create(ctx context.Context, pgrs *models.PGRS) error {
+    args := m.Called(ctx, pgrs)
+    return args.Error(0)
+}
+
+// Teste
+func TestPGRSService_CriarRascunho(t *testing.T) {
+    // Arrange
+    mockRepo := new(MockPGRSRepository)
+    mockRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+    
+    service := NewPGRSService(mockRepo, nil, nil)
+    
+    // Act
+    pgrs, err := service.CriarRascunho(context.Background(), &dto.CriarPGRSRequest{
+        UnidadeID: 1,
+    })
+    
+    // Assert
+    assert.NoError(t, err)
+    assert.NotNil(t, pgrs)
+    assert.Equal(t, "RASCUNHO", pgrs.Status)
+    mockRepo.AssertExpectations(t)
+}
+```
+
+### Testando Validators
+
+```go
+// internal/shared/validator/cnpj_test.go
+func TestValidarCNPJ(t *testing.T) {
+    tests := []struct {
+        name     string
+        cnpj     string
+        expected bool
+    }{
+        {"CNPJ válido", "11.222.333/0001-81", true},
+        {"CNPJ inválido", "11.111.111/1111-11", false},
+        {"CNPJ sem pontuação", "11222333000181", true},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            result := ValidarCNPJ(tt.cnpj)
+            assert.Equal(t, tt.expected, result)
+        })
+    }
+}
+```
+
+---
+
+## 🔗 TESTES DE INTEGRAÇÃO
+
+### Testando Repository com DB
+
+```go
+// internal/domain/pgrs/repository/pgrs_repo_integration_test.go
+func TestPGRSRepository_Integration(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Pulando teste de integração")
+    }
+    
+    // Setup DB de teste
+    db := setupTestDB(t)
+    defer teardownTestDB(db)
+    
+    repo := NewPGRSRepository(db)
+    
+    // Teste
+    pgrs := &models.PGRS{
+        Numero: "TEST-001",
+        Status: "RASCUNHO",
+    }
+    
+    err := repo.Create(context.Background(), pgrs)
+    assert.NoError(t, err)
+    assert.NotZero(t, pgrs.ID)
+    
+    // Buscar
+    found, err := repo.FindByID(context.Background(), pgrs.ID)
+    assert.NoError(t, err)
+    assert.Equal(t, "TEST-001", found.Numero)
+}
+
+func setupTestDB(t *testing.T) *gorm.DB {
+    db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+    require.NoError(t, err)
+    
+    db.AutoMigrate(&models.PGRS{})
+    return db
+}
+```
+
+### Testando API
+
+```go
+// internal/domain/pgrs/handlers/http_handler_test.go
+func TestHTTPHandler_Create(t *testing.T) {
+    // Setup
+    mockService := new(MockPGRSService)
+    handler := NewHTTPHandler(mockService)
+    
+    router := gin.Default()
+    router.POST("/pgrs", handler.Create)
+    
+    // Request
+    w := httptest.NewRecorder()
+    body := `{"unidade_id":1}`
+    req, _ := http.NewRequest("POST", "/pgrs", strings.NewReader(body))
+    req.Header.Set("Content-Type", "application/json")
+    
+    mockService.On("CriarRascunho", mock.Anything, mock.Anything).
+        Return(&models.PGRS{ID: 1}, nil)
+    
+    // Act
+    router.ServeHTTP(w, req)
+    
+    // Assert
+    assert.Equal(t, 201, w.Code)
+}
+```
+
+---
+
+## 🌐 TESTES E2E
+
+### Fluxo Completo
+
+```go
+func TestE2E_CriarEGerarPGRS(t *testing.T) {
+    // 1. Login
+    token := login(t, "admin@auren.com.br", "admin123")
+    
+    // 2. Criar PGRS
+    pgrsID := criarPGRS(t, token, 1)
+    
+    // 3. Gerar com IA
+    gerarPGRS(t, token, pgrsID)
+    
+    // 4. Aguardar conclusão
+    aguardarStatus(t, pgrsID, "AGUARDANDO_REVISAO")
+    
+    // 5. Aprovar
+    aprovarPGRS(t, token, pgrsID)
+    
+    // 6. Download
+    docx := baixarDocumento(t, token, pgrsID)
+    assert.NotNil(t, docx)
+}
+```
+
+---
+
+## 🏃 RODAR TESTES
+
+```bash
+# Todos os testes
+go test ./... -v
+
+# Com cobertura
+go test ./... -cover
+
+# Gerar relatório HTML
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out -o coverage.html
+
+# Apenas unitários (rápidos)
+go test ./... -short
+
+# Apenas um domínio
+go test ./internal/domain/pgrs/... -v
+
+# Benchmarks
+go test ./... -bench=.
+```
+
+---
+
+## 📊 COBERTURA
+
+### Meta por Domínio
+
+| Domínio | Meta | Atual |
+|---------|------|-------|
+| Admin | 80% | - |
+| PGRS | 85% | - |
+| Shared | 90% | - |
+| Total | 80% | - |
+
+### CI/CD
+
+```yaml
+# .github/workflows/tests.yml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+      
+      - name: Run tests
+        run: go test ./... -cover
+      
+      - name: Check coverage
+        run: |
+          coverage=$(go test ./... -coverprofile=coverage.out | grep total | awk '{print $3}')
+          if (( $(echo "$coverage < 80" | bc -l) )); then
+            echo "Coverage is below 80%"
+            exit 1
+          fi
+```
+
+---
+
+**Mantenha testes atualizados!**
